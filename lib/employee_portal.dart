@@ -1,12 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'chat_page.dart';
 import 'notification_page.dart';
 import 'active_users_page.dart';
+import 'leave_page.dart';
+import 'payroll_page.dart';
 import 'profile_page.dart';
+import 'attendance_page.dart';
 import 'websocket_service.dart';
 
 class EmployeePortal extends StatefulWidget {
@@ -25,19 +30,25 @@ class _EmployeePortalState extends State<EmployeePortal> {
   bool _isAuthenticating = false;
   ConnectionStatus _wsStatus = ConnectionStatus.disconnected;
   List<ActiveUser> _activeUsers = [];
-  int _unreadCount = 0;
+  int _notifUnreadCount = 0;
   int _chatUnreadCount = 0;
+  String? _contactUuid;
   StreamSubscription? _wsStatusSub;
   StreamSubscription? _wsMessageSub;
   StreamSubscription? _wsUsersSub;
   StreamSubscription? _wsUnreadSub;
   StreamSubscription? _wsChatSub;
+  StreamSubscription? _wsNotifSub;
+
+  static const String _apiBase = 'https://workspace.jedapps.com/api';
+  static const String _authToken = 'ws-fusion-2026-token';
 
   @override
   void initState() {
     super.initState();
     _authenticateWithBiometrics();
     _initWebSocket();
+    _resolveContactUuid();
   }
 
   void _initWebSocket() {
@@ -57,9 +68,17 @@ class _EmployeePortalState extends State<EmployeePortal> {
       if (mounted) {
         final count = data['unread_count'] ?? 0;
         setState(() {
-          _unreadCount = count;
           _chatUnreadCount = count;
         });
+      }
+    });
+    _wsNotifSub = _wsService.notificationsStream.listen((data) {
+      if (!mounted) return;
+      final event = data['event'] ?? data['type'];
+      if (event == 'new_notification') {
+        setState(() => _notifUnreadCount++);
+        final title = data['title'] ?? 'New notification';
+        _showSnackBar(title);
       }
     });
     _wsChatSub = _wsService.chatMessageStream.listen((msg) {
@@ -84,7 +103,64 @@ class _EmployeePortalState extends State<EmployeePortal> {
     _wsUsersSub?.cancel();
     _wsUnreadSub?.cancel();
     _wsChatSub?.cancel();
+    _wsNotifSub?.cancel();
     super.dispose();
+  }
+
+  static const String _userApiUrl =
+      'https://workspace.jedapps.com/pbx/app/workspace/user_api.php';
+
+  Future<void> _resolveContactUuid() async {
+    try {
+      final resp = await http.get(
+        Uri.parse('$_apiBase/employees'),
+        headers: {'Authorization': 'Bearer $_authToken'},
+      );
+      if (resp.statusCode == 200) {
+        final data = jsonDecode(resp.body);
+        final List employees =
+            data is List ? data : (data['employees'] ?? []);
+        final match = employees.cast<Map<String, dynamic>>().where((e) {
+          final empEmail = (e['email'] ?? '').toString().toLowerCase();
+          return empEmail == widget.username.toLowerCase();
+        });
+        if (match.isNotEmpty) {
+          _contactUuid = match.first['contact_uuid'] ??
+              match.first['uuid'] ??
+              match.first['id']?.toString();
+          if (_contactUuid != null) {
+            _fetchNotificationCount();
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[Portal] UUID resolve error: $e');
+    }
+  }
+
+  Future<void> _fetchNotificationCount() async {
+    if (_contactUuid == null) return;
+    try {
+      final resp = await http.post(
+        Uri.parse(_userApiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'token': _authToken,
+          'action': 'ep_notifications_count',
+          'contact_uuid': _contactUuid,
+        }),
+      );
+      if (resp.statusCode == 200 && mounted) {
+        final data = jsonDecode(resp.body);
+        if (data['ok'] == true) {
+          setState(() {
+            _notifUnreadCount = data['unread_count'] ?? 0;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('[Portal] Notification count error: $e');
+    }
   }
 
   Future<void> _authenticateWithBiometrics() async {
@@ -135,6 +211,7 @@ class _EmployeePortalState extends State<EmployeePortal> {
 
   void _showNewMessageNotification(ChatMessage msg) {
     final senderName = msg.senderName ?? msg.senderEmail;
+    if (senderName.isEmpty) return;
     final preview = msg.text.length > 50 ? '${msg.text.substring(0, 50)}...' : msg.text;
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -281,16 +358,25 @@ class _EmployeePortalState extends State<EmployeePortal> {
               IconButton(
                 icon: const Icon(Icons.notifications_outlined),
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const NotificationPage(),
-                    ),
-                  );
+                  if (_contactUuid != null) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => NotificationPage(
+                          contactUuid: _contactUuid!,
+                        ),
+                      ),
+                    ).then((_) {
+                      // Refresh count when returning from notification page
+                      _fetchNotificationCount();
+                    });
+                  } else {
+                    _showSnackBar('Loading notifications...');
+                  }
                 },
                 tooltip: 'Notifications',
               ),
-              if (_unreadCount > 0)
+              if (_notifUnreadCount > 0)
                 Positioned(
                   right: 8,
                   top: 8,
@@ -303,7 +389,7 @@ class _EmployeePortalState extends State<EmployeePortal> {
                     ),
                     child: Center(
                       child: Text(
-                        '$_unreadCount',
+                        _notifUnreadCount > 99 ? '99+' : '$_notifUnreadCount',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 9,
@@ -442,21 +528,23 @@ class _EmployeePortalState extends State<EmployeePortal> {
                 _buildActionCardWithCallback(
                   Icons.access_time_rounded,
                   'Attendance',
-                  'Clock In / Out',
+                  'View DTR & Status',
                   const Color(0xFF3B6FE8),
-                  _showAttendanceModal,
+                  _openAttendance,
                 ),
-                _buildActionCard(
+                _buildActionCardWithCallback(
                   Icons.calendar_today_rounded,
                   'Leave Request',
                   'Apply for leave',
                   const Color(0xFF00BFA5),
+                  _openLeave,
                 ),
-                _buildActionCard(
+                _buildActionCardWithCallback(
                   Icons.receipt_long_rounded,
                   'Payslip',
                   'View payslips',
                   const Color(0xFFFF7043),
+                  _openPayslip,
                 ),
                 _buildActionCardWithCallback(
                   Icons.person_outline_rounded,
@@ -545,6 +633,42 @@ class _EmployeePortalState extends State<EmployeePortal> {
     );
   }
 
+  void _openAttendance() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AttendancePage(
+          email: widget.username,
+          displayName: widget.displayName,
+        ),
+      ),
+    );
+  }
+
+  void _openLeave() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LeavePage(
+          email: widget.username,
+          displayName: widget.displayName,
+        ),
+      ),
+    );
+  }
+
+  void _openPayslip() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PayrollPage(
+          email: widget.username,
+          displayName: widget.displayName,
+        ),
+      ),
+    );
+  }
+
   void _openProfile() {
     Navigator.push(
       context,
@@ -576,14 +700,6 @@ class _EmployeePortalState extends State<EmployeePortal> {
     );
   }
 
-  void _showAttendanceModal() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => const _AttendanceModal(),
-    );
-  }
 
   Widget _buildActionCardWithCallback(
       IconData icon, String title, String subtitle, Color color, VoidCallback onTap) {

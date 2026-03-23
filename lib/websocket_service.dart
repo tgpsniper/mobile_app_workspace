@@ -25,10 +25,13 @@ class ActiveUser {
   }) : connectedAt = connectedAt ?? DateTime.now();
 
   factory ActiveUser.fromJson(Map<String, dynamic> json) {
-    final name = json['name'] ?? json['username'] ?? json['display_name'] ?? 'Unknown';
+    final name =
+        json['name'] ?? json['username'] ?? json['display_name'] ?? 'Unknown';
     final email = json['email'] ?? '';
     final ext = json['extension'] ?? json['ext'];
-    final userStatus = json['online'] == true ? 'online' : (json['status'] ?? 'offline');
+    final userStatus = json['online'] == true
+        ? 'online'
+        : (json['status'] ?? 'offline');
     final dev = json['device'] ?? json['platform'];
     final userRole = json['role'] ?? json['type'];
 
@@ -134,18 +137,27 @@ class WebSocketService {
   final _chatMessageController = StreamController<ChatMessage>.broadcast();
   final _typingController = StreamController<Map<String, dynamic>>.broadcast();
   final _unreadController = StreamController<Map<String, dynamic>>.broadcast();
-  final _reactionsController = StreamController<Map<String, dynamic>>.broadcast();
-  final _employeeChangeController = StreamController<Map<String, dynamic>>.broadcast();
+  final _reactionsController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  final _employeeChangeController =
+      StreamController<Map<String, dynamic>>.broadcast();
+  final _notificationsController =
+      StreamController<Map<String, dynamic>>.broadcast();
 
   Stream<ConnectionStatus> get statusStream => _statusController.stream;
   Stream<Map<String, dynamic>> get messageStream => _messageController.stream;
-  Stream<List<ActiveUser>> get activeUsersStream => _activeUsersController.stream;
+  Stream<List<ActiveUser>> get activeUsersStream =>
+      _activeUsersController.stream;
   Stream<List<Contact>> get contactsStream => _contactsController.stream;
   Stream<ChatMessage> get chatMessageStream => _chatMessageController.stream;
   Stream<Map<String, dynamic>> get typingStream => _typingController.stream;
   Stream<Map<String, dynamic>> get unreadStream => _unreadController.stream;
-  Stream<Map<String, dynamic>> get reactionsStream => _reactionsController.stream;
-  Stream<Map<String, dynamic>> get employeeChangeStream => _employeeChangeController.stream;
+  Stream<Map<String, dynamic>> get reactionsStream =>
+      _reactionsController.stream;
+  Stream<Map<String, dynamic>> get employeeChangeStream =>
+      _employeeChangeController.stream;
+  Stream<Map<String, dynamic>> get notificationsStream =>
+      _notificationsController.stream;
 
   ConnectionStatus _currentStatus = ConnectionStatus.disconnected;
   ConnectionStatus get currentStatus => _currentStatus;
@@ -162,9 +174,13 @@ class WebSocketService {
   void connect({String? username, String? email}) {
     // If already connected but with a different user, disconnect first
     if ((_currentStatus == ConnectionStatus.connecting ||
-        _currentStatus == ConnectionStatus.connected) &&
-        email != null && _email != null && email != _email) {
-      debugPrint('[WebSocket] User changed from $_email to $email — reconnecting');
+            _currentStatus == ConnectionStatus.connected) &&
+        email != null &&
+        _email != null &&
+        email != _email) {
+      debugPrint(
+        '[WebSocket] User changed from $_email to $email — reconnecting',
+      );
       disconnect();
     }
 
@@ -182,16 +198,18 @@ class WebSocketService {
       final uri = Uri.parse(_wsUrl);
       _channel = WebSocketChannel.connect(uri);
 
-      _channel!.ready.then((_) {
-        _setStatus(ConnectionStatus.connected);
-        _reconnectAttempts = 0;
-        _authenticate();
-        debugPrint('[WebSocket] Connected to $_wsUrl');
-      }).catchError((error) {
-        debugPrint('[WebSocket] Connection failed: $error');
-        _setStatus(ConnectionStatus.error);
-        _scheduleReconnect();
-      });
+      _channel!.ready
+          .then((_) {
+            _setStatus(ConnectionStatus.connected);
+            _reconnectAttempts = 0;
+            _authenticate();
+            debugPrint('[WebSocket] Connected to $_wsUrl');
+          })
+          .catchError((error) {
+            debugPrint('[WebSocket] Connection failed: $error');
+            _setStatus(ConnectionStatus.error);
+            _scheduleReconnect();
+          });
 
       _channel!.stream.listen(
         (data) {
@@ -205,7 +223,9 @@ class WebSocketService {
             _messageController.add(decoded);
           } catch (e) {
             debugPrint('[WebSocket] Parse error: $e');
-            debugPrint('[WebSocket] Raw data: ${text.substring(0, text.length > 500 ? 500 : text.length)}');
+            debugPrint(
+              '[WebSocket] Raw data: ${text.substring(0, text.length > 500 ? 500 : text.length)}',
+            );
           }
         },
         onError: (error) {
@@ -279,7 +299,7 @@ class WebSocketService {
       'user_email': userEmail,
       'other_email': otherEmail,
       'group_id': groupId,
-      if (since != null) 'since': since,
+      'since': ?since,
       'limit': limit,
     });
   }
@@ -289,24 +309,15 @@ class WebSocketService {
   }
 
   void getConversations({required String userEmail}) {
-    send({
-      'action': 'get_conversations',
-      'user_email': userEmail,
-    });
+    send({'action': 'get_conversations', 'user_email': userEmail});
   }
 
   void getGroups({required String userEmail}) {
-    send({
-      'action': 'get_groups',
-      'user_email': userEmail,
-    });
+    send({'action': 'get_groups', 'user_email': userEmail});
   }
 
   void getUnreadCount({required String userEmail}) {
-    send({
-      'action': 'get_unread_count',
-      'user_email': userEmail,
-    });
+    send({'action': 'get_unread_count', 'user_email': userEmail});
   }
 
   void markRead({
@@ -336,10 +347,7 @@ class WebSocketService {
   }
 
   void getReactions({required List<int> messageIds}) {
-    send({
-      'action': 'get_reactions',
-      'message_ids': messageIds,
-    });
+    send({'action': 'get_reactions', 'message_ids': messageIds});
   }
 
   void toggleReaction({
@@ -353,6 +361,35 @@ class WebSocketService {
       'user_email': userEmail,
       'reaction': reaction,
     });
+  }
+
+  // --- Notifications ---
+
+  void getNotifications({required String contactUuid, int limit = 50, int offset = 0}) {
+    send({
+      'action': 'ep_notifications_list',
+      'contact_uuid': contactUuid,
+      'limit': limit,
+      'offset': offset,
+    });
+  }
+
+  void getNotificationCount({required String contactUuid}) {
+    send({
+      'action': 'ep_notifications_count',
+      'contact_uuid': contactUuid,
+    });
+  }
+
+  void markNotificationRead({required String contactUuid, int? notificationId}) {
+    final msg = <String, dynamic>{
+      'action': 'ep_notifications_read',
+      'contact_uuid': contactUuid,
+    };
+    if (notificationId != null) {
+      msg['notification_id'] = notificationId;
+    }
+    send(msg);
   }
 
   // --- Active Users ---
@@ -384,11 +421,15 @@ class WebSocketService {
             .toList();
         _contactsController.add(_contacts);
         // Also update active users from contacts
-        _activeUsers = _contacts.map((c) => ActiveUser(
-          username: c.name,
-          email: c.email,
-          status: c.online ? 'online' : 'offline',
-        )).toList();
+        _activeUsers = _contacts
+            .map(
+              (c) => ActiveUser(
+                username: c.name,
+                email: c.email,
+                status: c.online ? 'online' : 'offline',
+              ),
+            )
+            .toList();
         _activeUsersController.add(_activeUsers);
         debugPrint('[WebSocket] Contacts loaded: ${_contacts.length}');
         break;
@@ -416,7 +457,8 @@ class WebSocketService {
             text: json['message_text'] ?? json['text'] ?? json['message'] ?? '',
             messageType: json['message_type'] ?? 'text',
             createdAt: json['created_at'] != null
-                ? DateTime.tryParse(json['created_at'].toString()) ?? DateTime.now()
+                ? DateTime.tryParse(json['created_at'].toString()) ??
+                      DateTime.now()
                 : DateTime.now(),
             senderName: json['sender_name'] ?? json['name'],
             isHistory: true,
@@ -454,11 +496,15 @@ class WebSocketService {
             );
             _contactsController.add(_contacts);
             // Update active users too
-            _activeUsers = _contacts.map((c) => ActiveUser(
-              username: c.name,
-              email: c.email,
-              status: c.online ? 'online' : 'offline',
-            )).toList();
+            _activeUsers = _contacts
+                .map(
+                  (c) => ActiveUser(
+                    username: c.name,
+                    email: c.email,
+                    status: c.online ? 'online' : 'offline',
+                  ),
+                )
+                .toList();
             _activeUsersController.add(_activeUsers);
           }
         }
@@ -481,12 +527,28 @@ class WebSocketService {
 
       case 'reaction_updated':
         _reactionsController.add(message);
-        debugPrint('[WebSocket] Reaction updated for message ${message['message_id']}');
+        debugPrint(
+          '[WebSocket] Reaction updated for message ${message['message_id']}',
+        );
         break;
 
       case 'employee_change':
         _employeeChangeController.add(message);
-        debugPrint('[WebSocket] Employee change: ${message['action_type']} ${message['uuid']}');
+        debugPrint(
+          '[WebSocket] Employee change: ${message['action_type']} ${message['uuid']}',
+        );
+        break;
+
+      case 'notifications':
+      case 'notification_count':
+      case 'notifications_read':
+        _notificationsController.add(message);
+        debugPrint('[WebSocket] Notification event: $event');
+        break;
+
+      case 'new_notification':
+        _notificationsController.add(message);
+        debugPrint('[WebSocket] New notification pushed: ${message['title']}');
         break;
 
       case 'error':
@@ -531,7 +593,9 @@ class WebSocketService {
 
     _reconnectAttempts++;
     final delay = _reconnectDelay * _reconnectAttempts;
-    debugPrint('[WebSocket] Reconnecting in ${delay.inSeconds}s (attempt $_reconnectAttempts/$_maxReconnectAttempts)');
+    debugPrint(
+      '[WebSocket] Reconnecting in ${delay.inSeconds}s (attempt $_reconnectAttempts/$_maxReconnectAttempts)',
+    );
 
     _reconnectTimer?.cancel();
     _reconnectTimer = Timer(delay, () => connect());
@@ -558,5 +622,6 @@ class WebSocketService {
     _unreadController.close();
     _reactionsController.close();
     _employeeChangeController.close();
+    _notificationsController.close();
   }
 }

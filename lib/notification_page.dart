@@ -1,84 +1,126 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'websocket_service.dart';
 
 class NotificationPage extends StatefulWidget {
-  const NotificationPage({super.key});
+  final String contactUuid;
+  const NotificationPage({super.key, required this.contactUuid});
 
   @override
   State<NotificationPage> createState() => _NotificationPageState();
 }
 
 class _NotificationPageState extends State<NotificationPage> {
-  final List<_NotificationItem> _notifications = [
-    _NotificationItem(
-      icon: Icons.event_available,
-      color: const Color(0xFF00BFA5),
-      title: 'Leave Approved',
-      body: 'Your leave request for Mar 25-26 has been approved by HR.',
-      time: DateTime.now().subtract(const Duration(minutes: 5)),
-      isRead: false,
-    ),
-    _NotificationItem(
-      icon: Icons.campaign,
-      color: const Color(0xFF3B6FE8),
-      title: 'Company Announcement',
-      body: 'Town hall meeting scheduled for Friday at 3:00 PM in the main conference room.',
-      time: DateTime.now().subtract(const Duration(minutes: 30)),
-      isRead: false,
-    ),
-    _NotificationItem(
-      icon: Icons.task_alt,
-      color: const Color(0xFFFFB300),
-      title: 'New Task Assigned',
-      body: 'Network audit for Building B has been assigned to you. Due: Mar 28.',
-      time: DateTime.now().subtract(const Duration(hours: 1)),
-      isRead: false,
-    ),
-    _NotificationItem(
-      icon: Icons.chat_bubble,
-      color: const Color(0xFFE91E63),
-      title: 'New Message',
-      body: 'Sarah from IT sent you a message: "Can you check the server logs?"',
-      time: DateTime.now().subtract(const Duration(hours: 2)),
-      isRead: true,
-    ),
-    _NotificationItem(
-      icon: Icons.receipt_long,
-      color: const Color(0xFFFF7043),
-      title: 'Payslip Available',
-      body: 'Your payslip for March 2026 is now available for download.',
-      time: DateTime.now().subtract(const Duration(hours: 5)),
-      isRead: true,
-    ),
-    _NotificationItem(
-      icon: Icons.security,
-      color: const Color(0xFF7C4DFF),
-      title: 'Security Alert',
-      body: 'New device login detected. If this wasn\'t you, please contact IT.',
-      time: DateTime.now().subtract(const Duration(hours: 8)),
-      isRead: true,
-    ),
-    _NotificationItem(
-      icon: Icons.update,
-      color: const Color(0xFF3B6FE8),
-      title: 'System Update',
-      body: 'Workspace app will undergo maintenance on Sunday 12:00 AM - 2:00 AM.',
-      time: DateTime.now().subtract(const Duration(days: 1)),
-      isRead: true,
-    ),
-    _NotificationItem(
-      icon: Icons.celebration,
-      color: const Color(0xFFFFB300),
-      title: 'Birthday Reminder',
-      body: 'Don\'t forget! It\'s Mark from Engineering\'s birthday today.',
-      time: DateTime.now().subtract(const Duration(days: 1, hours: 3)),
-      isRead: true,
-    ),
-  ];
+  static const String _apiUrl =
+      'https://workspace.jedapps.com/pbx/app/workspace/user_api.php';
+  static const String _authToken = 'ws-fusion-2026-token';
+
+  final WebSocketService _wsService = WebSocketService();
+  final List<_NotificationItem> _notifications = [];
+  bool _loading = true;
+  String? _error;
+  StreamSubscription? _notifSub;
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen for real-time pushes while page is open
+    _notifSub = _wsService.notificationsStream.listen(_handleRealtimePush);
+    _fetchNotifications();
+  }
+
+  @override
+  void dispose() {
+    _notifSub?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _fetchNotifications() async {
+    try {
+      final resp = await http.post(
+        Uri.parse(_apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'token': _authToken,
+          'action': 'ep_notifications_list',
+          'contact_uuid': widget.contactUuid,
+          'limit': 50,
+          'offset': 0,
+        }),
+      );
+
+      if (!mounted) return;
+
+      if (resp.statusCode == 200) {
+        final data = jsonDecode(resp.body);
+        if (data['ok'] == true) {
+          final list = data['notifications'] as List<dynamic>? ?? [];
+          final items = list.map((n) {
+            return _NotificationItem.fromJson(n as Map<String, dynamic>);
+          }).toList();
+          setState(() {
+            _notifications.clear();
+            _notifications.addAll(items);
+            _loading = false;
+            _error = null;
+          });
+        } else {
+          setState(() {
+            _loading = false;
+            _error = data['error']?.toString() ?? 'Failed to load notifications.';
+          });
+        }
+      } else {
+        setState(() {
+          _loading = false;
+          _error = 'Server error (${resp.statusCode}).';
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _error = 'Network error: $e';
+        });
+      }
+    }
+  }
+
+  Future<void> _markRead({int? notificationId}) async {
+    try {
+      final body = <String, dynamic>{
+        'token': _authToken,
+        'action': 'ep_notifications_read',
+        'contact_uuid': widget.contactUuid,
+      };
+      if (notificationId != null) {
+        body['notification_id'] = notificationId;
+      }
+      await http.post(
+        Uri.parse(_apiUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+    } catch (e) {
+      debugPrint('[Notifications] Mark read error: $e');
+    }
+  }
+
+  void _handleRealtimePush(Map<String, dynamic> data) {
+    final event = data['event'] ?? data['type'];
+    if (event == 'new_notification' && mounted) {
+      final item = _NotificationItem.fromJson(data);
+      setState(() => _notifications.insert(0, item));
+    }
+  }
 
   int get _unreadCount => _notifications.where((n) => !n.isRead).length;
 
   void _markAllAsRead() {
+    _markRead();
     setState(() {
       for (var n in _notifications) {
         n.isRead = true;
@@ -92,29 +134,15 @@ class _NotificationPageState extends State<NotificationPage> {
     );
   }
 
-  void _dismissNotification(int index) {
-    final removed = _notifications[index];
-    setState(() => _notifications.removeAt(index));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Removed: ${removed.title}'),
-        behavior: SnackBarBehavior.floating,
-        action: SnackBarAction(
-          label: 'Undo',
-          onPressed: () {
-            setState(() => _notifications.insert(index, removed));
-          },
-        ),
-      ),
-    );
-  }
-
   void _tapNotification(int index) {
-    setState(() => _notifications[index].isRead = true);
+    final n = _notifications[index];
+    if (!n.isRead) {
+      _markRead(notificationId: n.id);
+      setState(() => n.isRead = true);
+    }
     showDialog(
       context: context,
       builder: (ctx) {
-        final n = _notifications[index];
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: Row(
@@ -190,135 +218,166 @@ class _NotificationPageState extends State<NotificationPage> {
             ),
         ],
       ),
-      body: _notifications.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.notifications_off_outlined,
-                      size: 64, color: Colors.grey.shade400),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No notifications',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey.shade500,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
+      body: _loading
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFF3B6FE8)),
             )
-          : ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: _notifications.length,
-              itemBuilder: (context, index) {
-                final n = _notifications[index];
-                return Dismissible(
-                  key: ValueKey('${n.title}_${n.time.millisecondsSinceEpoch}'),
-                  direction: DismissDirection.endToStart,
-                  background: Container(
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 24),
-                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade400,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.delete_outline, color: Colors.white),
-                  ),
-                  onDismissed: (_) => _dismissNotification(index),
-                  child: GestureDetector(
-                    onTap: () => _tapNotification(index),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: n.isRead ? Colors.white : const Color(0xFFEBF0FF),
-                        borderRadius: BorderRadius.circular(12),
-                        border: n.isRead
-                            ? null
-                            : Border.all(
-                                color: const Color(0xFF3B6FE8).withValues(alpha: 0.3),
-                              ),
+          : _error != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline,
+                          size: 48, color: Colors.red.shade300),
+                      const SizedBox(height: 12),
+                      Text(
+                        _error!,
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                        textAlign: TextAlign.center,
                       ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _loading = true;
+                            _error = null;
+                          });
+                          _fetchNotifications();
+                        },
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
+              : _notifications.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: n.color.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(n.icon, color: n.color, size: 22),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        n.title,
-                                        style: TextStyle(
-                                          fontWeight: n.isRead
-                                              ? FontWeight.w500
-                                              : FontWeight.bold,
-                                          fontSize: 14,
-                                          color: const Color(0xFF1A2035),
-                                        ),
-                                      ),
-                                    ),
-                                    Text(
-                                      _formatTime(n.time),
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        color: Color(0xFF8A96B0),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  n.body,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: n.isRead
-                                        ? const Color(0xFF8A96B0)
-                                        : const Color(0xFF4A5568),
-                                    height: 1.3,
-                                  ),
-                                ),
-                              ],
+                          Icon(Icons.notifications_off_outlined,
+                              size: 64, color: Colors.grey.shade400),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No notifications',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey.shade500,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                          if (!n.isRead)
-                            Container(
-                              margin: const EdgeInsets.only(left: 8, top: 4),
-                              width: 8,
-                              height: 8,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Color(0xFF3B6FE8),
-                              ),
-                            ),
                         ],
                       ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: () async {
+                        await _fetchNotifications();
+                      },
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        itemCount: _notifications.length,
+                        itemBuilder: (context, index) {
+                          final n = _notifications[index];
+                          return GestureDetector(
+                            onTap: () => _tapNotification(index),
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 4),
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: n.isRead
+                                    ? Colors.white
+                                    : const Color(0xFFEBF0FF),
+                                borderRadius: BorderRadius.circular(12),
+                                border: n.isRead
+                                    ? null
+                                    : Border.all(
+                                        color: const Color(0xFF3B6FE8)
+                                            .withValues(alpha: 0.3),
+                                      ),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      color: n.color.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child:
+                                        Icon(n.icon, color: n.color, size: 22),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                n.title,
+                                                style: TextStyle(
+                                                  fontWeight: n.isRead
+                                                      ? FontWeight.w500
+                                                      : FontWeight.bold,
+                                                  fontSize: 14,
+                                                  color:
+                                                      const Color(0xFF1A2035),
+                                                ),
+                                              ),
+                                            ),
+                                            Text(
+                                              _formatTime(n.time),
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                color: Color(0xFF8A96B0),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          n.body,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: n.isRead
+                                                ? const Color(0xFF8A96B0)
+                                                : const Color(0xFF4A5568),
+                                            height: 1.3,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (!n.isRead)
+                                    Container(
+                                      margin: const EdgeInsets.only(
+                                          left: 8, top: 4),
+                                      width: 8,
+                                      height: 8,
+                                      decoration: const BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Color(0xFF3B6FE8),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
     );
   }
 }
 
 class _NotificationItem {
+  final int id;
+  final String type;
   final IconData icon;
   final Color color;
   final String title;
@@ -327,6 +386,8 @@ class _NotificationItem {
   bool isRead;
 
   _NotificationItem({
+    required this.id,
+    required this.type,
     required this.icon,
     required this.color,
     required this.title,
@@ -334,4 +395,47 @@ class _NotificationItem {
     required this.time,
     required this.isRead,
   });
+
+  factory _NotificationItem.fromJson(Map<String, dynamic> json) {
+    final type = json['type'] ?? 'general';
+    return _NotificationItem(
+      id: json['id'] ?? 0,
+      type: type,
+      icon: _iconForType(type),
+      color: _colorForType(type),
+      title: json['title'] ?? 'Notification',
+      body: json['body'] ?? '',
+      time: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'].toString())?.toLocal() ??
+              DateTime.now()
+          : DateTime.now(),
+      isRead: json['is_read'] == true || json['is_read'] == 1,
+    );
+  }
+
+  static IconData _iconForType(String type) {
+    switch (type) {
+      case 'leave_approved':
+        return Icons.event_available;
+      case 'leave_rejected':
+        return Icons.event_busy;
+      case 'payslip_ready':
+        return Icons.receipt_long;
+      default:
+        return Icons.notifications;
+    }
+  }
+
+  static Color _colorForType(String type) {
+    switch (type) {
+      case 'leave_approved':
+        return const Color(0xFF00BFA5);
+      case 'leave_rejected':
+        return const Color(0xFFE91E63);
+      case 'payslip_ready':
+        return const Color(0xFFFF7043);
+      default:
+        return const Color(0xFF3B6FE8);
+    }
+  }
 }
