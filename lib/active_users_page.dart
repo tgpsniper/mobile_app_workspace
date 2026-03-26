@@ -89,16 +89,16 @@ class _ActiveUsersPageState extends State<ActiveUsersPage> {
             color: _wsStatus == ConnectionStatus.connected
                 ? const Color(0xFF00BFA5)
                 : _wsStatus == ConnectionStatus.connecting
-                    ? Colors.orange
-                    : Colors.redAccent,
+                ? Colors.orange
+                : Colors.redAccent,
             child: Row(
               children: [
                 Icon(
                   _wsStatus == ConnectionStatus.connected
                       ? Icons.cloud_done
                       : _wsStatus == ConnectionStatus.connecting
-                          ? Icons.cloud_sync
-                          : Icons.cloud_off,
+                      ? Icons.cloud_sync
+                      : Icons.cloud_off,
                   color: Colors.white,
                   size: 18,
                 ),
@@ -107,14 +107,15 @@ class _ActiveUsersPageState extends State<ActiveUsersPage> {
                   _wsStatus == ConnectionStatus.connected
                       ? 'Connected to workspace.jedapps.com'
                       : _wsStatus == ConnectionStatus.connecting
-                          ? 'Connecting to server...'
-                          : 'Disconnected from server',
+                      ? 'Connecting to server...'
+                      : 'Disconnected from server',
                   style: const TextStyle(color: Colors.white, fontSize: 13),
                 ),
                 const Spacer(),
                 if (_wsStatus != ConnectionStatus.connected)
                   GestureDetector(
-                    onTap: () => _wsService.connect(username: widget.currentUsername),
+                    onTap: () =>
+                        _wsService.connect(username: widget.currentUsername),
                     child: const Text(
                       'Retry',
                       style: TextStyle(
@@ -137,8 +138,11 @@ class _ActiveUsersPageState extends State<ActiveUsersPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.people_outline,
-                            size: 64, color: Colors.grey.shade400),
+                        Icon(
+                          Icons.people_outline,
+                          size: 64,
+                          color: Colors.grey.shade400,
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           _wsStatus == ConnectionStatus.connected
@@ -180,8 +184,10 @@ class _ActiveUsersPageState extends State<ActiveUsersPage> {
                           borderRadius: BorderRadius.circular(14),
                           border: isCurrentUser
                               ? Border.all(
-                                  color: const Color(0xFF3B6FE8)
-                                      .withValues(alpha: 0.3))
+                                  color: const Color(
+                                    0xFF3B6FE8,
+                                  ).withValues(alpha: 0.3),
+                                )
                               : null,
                         ),
                         child: Row(
@@ -191,8 +197,9 @@ class _ActiveUsersPageState extends State<ActiveUsersPage> {
                               children: [
                                 CircleAvatar(
                                   radius: 24,
-                                  backgroundColor:
-                                      avatarColor.withValues(alpha: 0.15),
+                                  backgroundColor: avatarColor.withValues(
+                                    alpha: 0.15,
+                                  ),
                                   child: Text(
                                     contact.name[0].toUpperCase(),
                                     style: TextStyle(
@@ -214,7 +221,9 @@ class _ActiveUsersPageState extends State<ActiveUsersPage> {
                                           : Colors.grey,
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                          color: Colors.white, width: 2),
+                                        color: Colors.white,
+                                        width: 2,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -244,11 +253,14 @@ class _ActiveUsersPageState extends State<ActiveUsersPage> {
                                         const SizedBox(width: 6),
                                         Container(
                                           padding: const EdgeInsets.symmetric(
-                                              horizontal: 6, vertical: 2),
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
                                           decoration: BoxDecoration(
                                             color: const Color(0xFF3B6FE8),
-                                            borderRadius:
-                                                BorderRadius.circular(6),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
                                           ),
                                           child: const Text(
                                             'You',
@@ -277,11 +289,14 @@ class _ActiveUsersPageState extends State<ActiveUsersPage> {
                             // Status badge
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: contact.online
-                                    ? const Color(0xFF00BFA5)
-                                        .withValues(alpha: 0.1)
+                                    ? const Color(
+                                        0xFF00BFA5,
+                                      ).withValues(alpha: 0.1)
                                     : Colors.grey.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(20),
                               ),

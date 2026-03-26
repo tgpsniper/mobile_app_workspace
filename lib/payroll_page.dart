@@ -114,7 +114,8 @@ class PayrollPage extends StatefulWidget {
 class _PayrollPageState extends State<PayrollPage> {
   static const String _apiBase = 'https://workspace.jedapps.com/api';
   static const String _authToken = 'ws-fusion-2026-token';
-  static const String _userApiUrl = 'https://workspace.jedapps.com/pbx/app/workspace/user_api.php';
+  static const String _userApiUrl =
+      'https://workspace.jedapps.com/pbx/app/workspace/user_api.php';
 
   bool _isLoading = true;
   String? _error;
@@ -183,14 +184,19 @@ class _PayrollPageState extends State<PayrollPage> {
         }),
       );
 
-      debugPrint('[Payroll] Response (${resp.statusCode}): ${resp.body.substring(0, resp.body.length > 500 ? 500 : resp.body.length)}');
+      debugPrint(
+        '[Payroll] Response (${resp.statusCode}): ${resp.body.substring(0, resp.body.length > 500 ? 500 : resp.body.length)}',
+      );
 
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body) as Map<String, dynamic>;
         if (data['ok'] == true) {
           setState(() {
             _payslips = (data['payslips'] as List<dynamic>? ?? [])
-                .map((p) => PhPayroll.applyDeductions(Map<String, dynamic>.from(p)))
+                .map(
+                  (p) =>
+                      PhPayroll.applyDeductions(Map<String, dynamic>.from(p)),
+                )
                 .toList();
             _payType = (data['pay_type'] ?? '').toString();
             _rate = (data['rate'] ?? 0).toDouble();
@@ -219,18 +225,28 @@ class _PayrollPageState extends State<PayrollPage> {
   }
 
   // --- Annual summary computed from payslips ---
-  double get _totalGross => _payslips.fold(0.0, (s, p) => s + (p['gross'] ?? 0).toDouble());
-  double get _totalDeductions => _payslips.fold(0.0, (s, p) => s + (p['total_deductions'] ?? 0).toDouble());
-  double get _totalNet => _payslips.fold(0.0, (s, p) => s + (p['net'] ?? 0).toDouble());
-  double get _totalDays => _payslips.fold(0.0, (s, p) => s + (p['days_worked'] ?? 0).toDouble());
-  double get _totalHours => _payslips.fold(0.0, (s, p) => s + (p['hours'] ?? 0).toDouble());
+  double get _totalGross =>
+      _payslips.fold(0.0, (s, p) => s + (p['gross'] ?? 0).toDouble());
+  double get _totalDeductions => _payslips.fold(
+    0.0,
+    (s, p) => s + (p['total_deductions'] ?? 0).toDouble(),
+  );
+  double get _totalNet =>
+      _payslips.fold(0.0, (s, p) => s + (p['net'] ?? 0).toDouble());
+  double get _totalDays =>
+      _payslips.fold(0.0, (s, p) => s + (p['days_worked'] ?? 0).toDouble());
+  double get _totalHours =>
+      _payslips.fold(0.0, (s, p) => s + (p['hours'] ?? 0).toDouble());
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1A2035),
       appBar: AppBar(
-        title: const Text('Payroll', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+        title: const Text(
+          'Payroll',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
         backgroundColor: const Color(0xFF1A2035),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -240,37 +256,50 @@ class _PayrollPageState extends State<PayrollPage> {
             Center(
               child: Container(
                 margin: const EdgeInsets.only(right: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: _payType == 'hourly' ? const Color(0xFF3B6FE8) : const Color(0xFF00BFA5),
+                  color: _payType == 'hourly'
+                      ? const Color(0xFF3B6FE8)
+                      : const Color(0xFF00BFA5),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  _payType == 'hourly' ? '₱${_currencyFormat.format(_rate)}/hr' : '₱${_currencyFormat.format(_salary)}/mo',
-                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                  _payType == 'hourly'
+                      ? '₱${_currencyFormat.format(_rate)}/hr'
+                      : '₱${_currencyFormat.format(_salary)}/mo',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF3B6FE8)))
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFF3B6FE8)),
+            )
           : _error != null
-              ? _buildError()
-              : RefreshIndicator(
-                  onRefresh: _fetchPayroll,
-                  color: const Color(0xFF3B6FE8),
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                    children: [
-                      _buildYearSelector(),
-                      const SizedBox(height: 16),
-                      _buildAnnualSummary(),
-                      const SizedBox(height: 20),
-                      ..._buildMonthCards(),
-                    ],
-                  ),
-                ),
+          ? _buildError()
+          : RefreshIndicator(
+              onRefresh: _fetchPayroll,
+              color: const Color(0xFF3B6FE8),
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                children: [
+                  _buildYearSelector(),
+                  const SizedBox(height: 16),
+                  _buildAnnualSummary(),
+                  const SizedBox(height: 20),
+                  ..._buildMonthCards(),
+                ],
+              ),
+            ),
     );
   }
 
@@ -283,7 +312,11 @@ class _PayrollPageState extends State<PayrollPage> {
           children: [
             const Icon(Icons.error_outline, color: Colors.white38, size: 48),
             const SizedBox(height: 16),
-            Text(_error!, style: const TextStyle(color: Colors.white70, fontSize: 14), textAlign: TextAlign.center),
+            Text(
+              _error!,
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: _fetchPayroll,
@@ -292,7 +325,9 @@ class _PayrollPageState extends State<PayrollPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF3B6FE8),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
@@ -320,14 +355,25 @@ class _PayrollPageState extends State<PayrollPage> {
               context: context,
               builder: (ctx) => SimpleDialog(
                 title: const Text('Select Year'),
-                children: years.map((y) => SimpleDialogOption(
-                  onPressed: () => Navigator.pop(ctx, y),
-                  child: Text('$y', style: TextStyle(
-                    fontWeight: y == _selectedYear ? FontWeight.bold : FontWeight.normal,
-                    color: y == _selectedYear ? const Color(0xFF3B6FE8) : null,
-                    fontSize: 16,
-                  )),
-                )).toList(),
+                children: years
+                    .map(
+                      (y) => SimpleDialogOption(
+                        onPressed: () => Navigator.pop(ctx, y),
+                        child: Text(
+                          '$y',
+                          style: TextStyle(
+                            fontWeight: y == _selectedYear
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: y == _selectedYear
+                                ? const Color(0xFF3B6FE8)
+                                : null,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
               ),
             );
             if (picked != null && picked != _selectedYear) {
@@ -345,11 +391,26 @@ class _PayrollPageState extends State<PayrollPage> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.calendar_today, color: Colors.white70, size: 16),
+                const Icon(
+                  Icons.calendar_today,
+                  color: Colors.white70,
+                  size: 16,
+                ),
                 const SizedBox(width: 8),
-                Text('$_selectedYear', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(
+                  '$_selectedYear',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(width: 4),
-                const Icon(Icons.arrow_drop_down, color: Colors.white54, size: 20),
+                const Icon(
+                  Icons.arrow_drop_down,
+                  color: Colors.white54,
+                  size: 20,
+                ),
               ],
             ),
           ),
@@ -382,15 +443,30 @@ class _PayrollPageState extends State<PayrollPage> {
         children: [
           Row(
             children: [
-              const Icon(Icons.bar_chart_rounded, color: Colors.white70, size: 20),
+              const Icon(
+                Icons.bar_chart_rounded,
+                color: Colors.white70,
+                size: 20,
+              ),
               const SizedBox(width: 8),
-              Text('$_selectedYear Annual Summary', style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+              Text(
+                '$_selectedYear Annual Summary',
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
           _summaryRow('Gross Pay', _totalGross, Colors.white),
           const SizedBox(height: 8),
-          _summaryRow('Total Deductions', _totalDeductions, const Color(0xFFFF7043)),
+          _summaryRow(
+            'Total Deductions',
+            _totalDeductions,
+            const Color(0xFFFF7043),
+          ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 10),
             child: Divider(color: Colors.white24, height: 1),
@@ -399,9 +475,15 @@ class _PayrollPageState extends State<PayrollPage> {
           const SizedBox(height: 14),
           Row(
             children: [
-              _summaryChip(Icons.calendar_today, '${_totalDays.toStringAsFixed(0)} days'),
+              _summaryChip(
+                Icons.calendar_today,
+                '${_totalDays.toStringAsFixed(0)} days',
+              ),
               const SizedBox(width: 12),
-              _summaryChip(Icons.access_time, '${_totalHours.toStringAsFixed(1)} hrs'),
+              _summaryChip(
+                Icons.access_time,
+                '${_totalHours.toStringAsFixed(1)} hrs',
+              ),
               const SizedBox(width: 12),
               _summaryChip(Icons.receipt_long, '${_payslips.length} months'),
             ],
@@ -415,8 +497,18 @@ class _PayrollPageState extends State<PayrollPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13)),
-        Text('₱${_currencyFormat.format(amount)}', style: TextStyle(color: valueColor, fontSize: 16, fontWeight: FontWeight.bold)),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 13),
+        ),
+        Text(
+          '₱${_currencyFormat.format(amount)}',
+          style: TextStyle(
+            color: valueColor,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ],
     );
   }
@@ -433,7 +525,10 @@ class _PayrollPageState extends State<PayrollPage> {
         children: [
           Icon(icon, color: Colors.white54, size: 12),
           const SizedBox(width: 4),
-          Text(text, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+          Text(
+            text,
+            style: const TextStyle(color: Colors.white70, fontSize: 11),
+          ),
         ],
       ),
     );
@@ -447,9 +542,16 @@ class _PayrollPageState extends State<PayrollPage> {
           child: Center(
             child: Column(
               children: [
-                const Icon(Icons.receipt_long_outlined, color: Colors.white24, size: 48),
+                const Icon(
+                  Icons.receipt_long_outlined,
+                  color: Colors.white24,
+                  size: 48,
+                ),
                 const SizedBox(height: 12),
-                Text('No payslips for $_selectedYear', style: const TextStyle(color: Colors.white38, fontSize: 14)),
+                Text(
+                  'No payslips for $_selectedYear',
+                  style: const TextStyle(color: Colors.white38, fontSize: 14),
+                ),
               ],
             ),
           ),
@@ -469,7 +571,9 @@ class _PayrollPageState extends State<PayrollPage> {
       final sss = (p['sss'] ?? 0).toDouble();
       final philhealth = (p['philhealth'] ?? 0).toDouble();
       final pagibig = (p['pagibig'] ?? 0).toDouble();
-      final withholdingTax = (p['withholding_tax'] ?? (totalDed - sss - philhealth - pagibig)).toDouble();
+      final withholdingTax =
+          (p['withholding_tax'] ?? (totalDed - sss - philhealth - pagibig))
+              .toDouble();
 
       return Padding(
         padding: const EdgeInsets.only(bottom: 12),
@@ -487,7 +591,11 @@ class _PayrollPageState extends State<PayrollPage> {
             decoration: BoxDecoration(
               color: const Color(0xFF232A3E),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: isExpanded ? const Color(0xFF3B6FE8).withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.06)),
+              border: Border.all(
+                color: isExpanded
+                    ? const Color(0xFF3B6FE8).withValues(alpha: 0.4)
+                    : Colors.white.withValues(alpha: 0.06),
+              ),
             ),
             child: Column(
               children: [
@@ -501,13 +609,23 @@ class _PayrollPageState extends State<PayrollPage> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF3B6FE8).withValues(alpha: 0.15),
+                          color: const Color(
+                            0xFF3B6FE8,
+                          ).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Center(
                           child: Text(
-                            monthName.split(' ').first.substring(0, 3).toUpperCase(),
-                            style: const TextStyle(color: Color(0xFF3B6FE8), fontSize: 12, fontWeight: FontWeight.bold),
+                            monthName
+                                .split(' ')
+                                .first
+                                .substring(0, 3)
+                                .toUpperCase(),
+                            style: const TextStyle(
+                              color: Color(0xFF3B6FE8),
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
@@ -516,25 +634,55 @@ class _PayrollPageState extends State<PayrollPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(monthName, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+                            Text(
+                              monthName,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                             const SizedBox(height: 2),
-                            Text('$days days  ·  ${hours.toStringAsFixed(1)} hrs', style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 11)),
+                            Text(
+                              '$days days  ·  ${hours.toStringAsFixed(1)} hrs',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.4),
+                                fontSize: 11,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('₱${_currencyFormat.format(net)}', style: const TextStyle(color: Color(0xFF69F0AE), fontSize: 15, fontWeight: FontWeight.bold)),
+                          Text(
+                            '₱${_currencyFormat.format(net)}',
+                            style: const TextStyle(
+                              color: Color(0xFF69F0AE),
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const SizedBox(height: 2),
-                          Text('net pay', style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 10)),
+                          Text(
+                            'net pay',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.3),
+                              fontSize: 10,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(width: 8),
                       AnimatedRotation(
                         turns: isExpanded ? 0.5 : 0,
                         duration: const Duration(milliseconds: 250),
-                        child: Icon(Icons.keyboard_arrow_down, color: Colors.white.withValues(alpha: 0.3), size: 22),
+                        child: Icon(
+                          Icons.keyboard_arrow_down,
+                          color: Colors.white.withValues(alpha: 0.3),
+                          size: 22,
+                        ),
                       ),
                     ],
                   ),
@@ -543,8 +691,20 @@ class _PayrollPageState extends State<PayrollPage> {
                 // Expanded details
                 AnimatedCrossFade(
                   firstChild: const SizedBox.shrink(),
-                  secondChild: _buildExpandedDetails(gross, sss, philhealth, pagibig, withholdingTax, totalDed, net, days, hours),
-                  crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                  secondChild: _buildExpandedDetails(
+                    gross,
+                    sss,
+                    philhealth,
+                    pagibig,
+                    withholdingTax,
+                    totalDed,
+                    net,
+                    days,
+                    hours,
+                  ),
+                  crossFadeState: isExpanded
+                      ? CrossFadeState.showSecond
+                      : CrossFadeState.showFirst,
                   duration: const Duration(milliseconds: 250),
                 ),
               ],
@@ -555,7 +715,17 @@ class _PayrollPageState extends State<PayrollPage> {
     });
   }
 
-  Widget _buildExpandedDetails(double gross, double sss, double philhealth, double pagibig, double tax, double totalDed, double net, dynamic days, double hours) {
+  Widget _buildExpandedDetails(
+    double gross,
+    double sss,
+    double philhealth,
+    double pagibig,
+    double tax,
+    double totalDed,
+    double net,
+    dynamic days,
+    double hours,
+  ) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
@@ -564,7 +734,11 @@ class _PayrollPageState extends State<PayrollPage> {
           const SizedBox(height: 14),
 
           // Earnings section
-          _sectionHeader('Earnings', Icons.trending_up, const Color(0xFF3B6FE8)),
+          _sectionHeader(
+            'Earnings',
+            Icons.trending_up,
+            const Color(0xFF3B6FE8),
+          ),
           const SizedBox(height: 8),
           _detailRow('Gross Pay', gross, Colors.white),
           if (_payType == 'hourly')
@@ -572,13 +746,20 @@ class _PayrollPageState extends State<PayrollPage> {
               padding: const EdgeInsets.only(left: 12, top: 2),
               child: Text(
                 '${hours.toStringAsFixed(1)} hrs × ₱${_currencyFormat.format(_rate)}',
-                style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 11),
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  fontSize: 11,
+                ),
               ),
             ),
           const SizedBox(height: 14),
 
           // Deductions section
-          _sectionHeader('Deductions', Icons.remove_circle_outline, const Color(0xFFFF7043)),
+          _sectionHeader(
+            'Deductions',
+            Icons.remove_circle_outline,
+            const Color(0xFFFF7043),
+          ),
           const SizedBox(height: 8),
           _deductionRow('SSS', sss, const Color(0xFF42A5F5)),
           _deductionRow('PhilHealth', philhealth, const Color(0xFF66BB6A)),
@@ -598,13 +779,29 @@ class _PayrollPageState extends State<PayrollPage> {
             decoration: BoxDecoration(
               color: const Color(0xFF69F0AE).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFF69F0AE).withValues(alpha: 0.2)),
+              border: Border.all(
+                color: const Color(0xFF69F0AE).withValues(alpha: 0.2),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Net Pay', style: TextStyle(color: Color(0xFF69F0AE), fontSize: 14, fontWeight: FontWeight.w600)),
-                Text('₱${_currencyFormat.format(net)}', style: const TextStyle(color: Color(0xFF69F0AE), fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Net Pay',
+                  style: TextStyle(
+                    color: Color(0xFF69F0AE),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  '₱${_currencyFormat.format(net)}',
+                  style: const TextStyle(
+                    color: Color(0xFF69F0AE),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
           ),
@@ -618,7 +815,15 @@ class _PayrollPageState extends State<PayrollPage> {
       children: [
         Icon(icon, color: color, size: 16),
         const SizedBox(width: 6),
-        Text(title, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 0.5)),
+        Text(
+          title,
+          style: TextStyle(
+            color: color,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
       ],
     );
   }
@@ -629,8 +834,21 @@ class _PayrollPageState extends State<PayrollPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 13)),
-          Text('₱${_currencyFormat.format(amount)}', style: TextStyle(color: valueColor, fontSize: 13, fontWeight: FontWeight.w600)),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.5),
+              fontSize: 13,
+            ),
+          ),
+          Text(
+            '₱${_currencyFormat.format(amount)}',
+            style: TextStyle(
+              color: valueColor,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );
@@ -647,8 +865,22 @@ class _PayrollPageState extends State<PayrollPage> {
             decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
           ),
           const SizedBox(width: 8),
-          Expanded(child: Text(label, style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 13))),
-          Text('- ₱${_currencyFormat.format(amount)}', style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13)),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.5),
+                fontSize: 13,
+              ),
+            ),
+          ),
+          Text(
+            '- ₱${_currencyFormat.format(amount)}',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 13,
+            ),
+          ),
         ],
       ),
     );

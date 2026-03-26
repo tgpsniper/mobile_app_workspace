@@ -63,14 +63,14 @@ class _AttendancePageState extends State<AttendancePage>
       );
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body);
-        final List employees =
-            data is List ? data : (data['employees'] ?? []);
+        final List employees = data is List ? data : (data['employees'] ?? []);
         final match = employees.cast<Map<String, dynamic>>().where((e) {
           final empEmail = (e['email'] ?? '').toString().toLowerCase();
           return empEmail == widget.email.toLowerCase();
         });
         if (match.isNotEmpty) {
-          _contactUuid = match.first['contact_uuid'] ??
+          _contactUuid =
+              match.first['contact_uuid'] ??
               match.first['uuid'] ??
               match.first['id']?.toString();
         }
@@ -140,7 +140,9 @@ class _AttendancePageState extends State<AttendancePage>
       }
       if (perm == LocationPermission.deniedForever) return null;
       return await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
     } catch (_) {
       return null;
@@ -181,12 +183,15 @@ class _AttendancePageState extends State<AttendancePage>
         if (data['ok'] == true) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(type == 'in'
-                  ? 'Clocked In at ${DateFormat('hh:mm:ss a').format(DateTime.now())}'
-                  : 'Clocked Out at ${DateFormat('hh:mm:ss a').format(DateTime.now())}'),
+              content: Text(
+                type == 'in'
+                    ? 'Clocked In at ${DateFormat('hh:mm:ss a').format(DateTime.now())}'
+                    : 'Clocked Out at ${DateFormat('hh:mm:ss a').format(DateTime.now())}',
+              ),
               behavior: SnackBarBehavior.floating,
-              backgroundColor:
-                  type == 'in' ? const Color(0xFF00BFA5) : const Color(0xFFFF7043),
+              backgroundColor: type == 'in'
+                  ? const Color(0xFF00BFA5)
+                  : const Color(0xFFFF7043),
             ),
           );
           _fetchClockStatus();
@@ -312,19 +317,23 @@ class _AttendancePageState extends State<AttendancePage>
       ),
       body: _loadingUuid
           ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF3B6FE8)))
+              child: CircularProgressIndicator(color: Color(0xFF3B6FE8)),
+            )
           : _error != null && _contactUuid == null
-              ? Center(
-                  child: Text(_error!,
-                      style: TextStyle(color: Colors.grey.shade600)))
-              : TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildDashboardTab(),
-                    _buildMonthlyTab(),
-                    _buildWeeklyTab(),
-                  ],
-                ),
+          ? Center(
+              child: Text(
+                _error!,
+                style: TextStyle(color: Colors.grey.shade600),
+              ),
+            )
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _buildDashboardTab(),
+                _buildMonthlyTab(),
+                _buildWeeklyTab(),
+              ],
+            ),
     );
   }
 
@@ -333,10 +342,14 @@ class _AttendancePageState extends State<AttendancePage>
   Widget _buildDashboardTab() {
     if (_loadingClock) {
       return const Center(
-          child: CircularProgressIndicator(color: Color(0xFF3B6FE8)));
+        child: CircularProgressIndicator(color: Color(0xFF3B6FE8)),
+      );
     }
     if (_clockStatus == null) {
-      return _buildRetryWidget('Could not load clock status', _fetchClockStatus);
+      return _buildRetryWidget(
+        'Could not load clock status',
+        _fetchClockStatus,
+      );
     }
 
     final bool clockedIn = _clockStatus!['clocked_in'] == true;
@@ -392,12 +405,17 @@ class _AttendancePageState extends State<AttendancePage>
                     const SizedBox(height: 4),
                     Text(
                       'Since $clockInTime',
-                      style: const TextStyle(color: Colors.white70, fontSize: 14),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 8),
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
@@ -430,7 +448,10 @@ class _AttendancePageState extends State<AttendancePage>
                             width: 18,
                             height: 18,
                             child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white))
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
                         : const Icon(Icons.login, size: 18),
                     label: const Text('Time In'),
                     style: ElevatedButton.styleFrom(
@@ -439,7 +460,8 @@ class _AttendancePageState extends State<AttendancePage>
                       disabledBackgroundColor: Colors.grey.shade300,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ),
@@ -454,7 +476,10 @@ class _AttendancePageState extends State<AttendancePage>
                             width: 18,
                             height: 18,
                             child: CircularProgressIndicator(
-                                strokeWidth: 2, color: Colors.white))
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
                         : const Icon(Icons.logout, size: 18),
                     label: const Text('Time Out'),
                     style: ElevatedButton.styleFrom(
@@ -463,7 +488,8 @@ class _AttendancePageState extends State<AttendancePage>
                       disabledBackgroundColor: Colors.grey.shade300,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ),
@@ -475,43 +501,53 @@ class _AttendancePageState extends State<AttendancePage>
             Row(
               children: [
                 Expanded(
-                    child: _buildStatCard(
-                        'Today',
-                        _formatHours(today['total_hours']),
-                        Icons.today,
-                        const Color(0xFF3B6FE8))),
+                  child: _buildStatCard(
+                    'Today',
+                    _formatHours(today['total_hours']),
+                    Icons.today,
+                    const Color(0xFF3B6FE8),
+                  ),
+                ),
                 const SizedBox(width: 10),
                 Expanded(
-                    child: _buildStatCard(
-                        'This Week',
-                        _formatHours(week['total_hours']),
-                        Icons.date_range,
-                        const Color(0xFF00BFA5))),
+                  child: _buildStatCard(
+                    'This Week',
+                    _formatHours(week['total_hours']),
+                    Icons.date_range,
+                    const Color(0xFF00BFA5),
+                  ),
+                ),
                 const SizedBox(width: 10),
                 Expanded(
-                    child: _buildStatCard(
-                        'This Month',
-                        _formatHours(month['total_hours']),
-                        Icons.calendar_month,
-                        const Color(0xFFFF7043))),
+                  child: _buildStatCard(
+                    'This Month',
+                    _formatHours(month['total_hours']),
+                    Icons.calendar_month,
+                    const Color(0xFFFF7043),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
-                    child: _buildStatCard(
-                        'Days (Week)',
-                        '${week['days_worked'] ?? 0}',
-                        Icons.work_history,
-                        const Color(0xFF7C4DFF))),
+                  child: _buildStatCard(
+                    'Days (Week)',
+                    '${week['days_worked'] ?? 0}',
+                    Icons.work_history,
+                    const Color(0xFF7C4DFF),
+                  ),
+                ),
                 const SizedBox(width: 10),
                 Expanded(
-                    child: _buildStatCard(
-                        'Days (Month)',
-                        '${month['days_worked'] ?? 0}',
-                        Icons.event_available,
-                        const Color(0xFFE91E63))),
+                  child: _buildStatCard(
+                    'Days (Month)',
+                    '${month['days_worked'] ?? 0}',
+                    Icons.event_available,
+                    const Color(0xFFE91E63),
+                  ),
+                ),
                 const SizedBox(width: 10),
                 const Expanded(child: SizedBox()),
               ],
@@ -538,13 +574,18 @@ class _AttendancePageState extends State<AttendancePage>
                 ),
                 child: Column(
                   children: [
-                    Icon(Icons.event_busy,
-                        size: 40, color: Colors.grey.shade400),
+                    Icon(
+                      Icons.event_busy,
+                      size: 40,
+                      color: Colors.grey.shade400,
+                    ),
                     const SizedBox(height: 8),
                     Text(
                       'No records yet today',
                       style: TextStyle(
-                          color: Colors.grey.shade500, fontSize: 14),
+                        color: Colors.grey.shade500,
+                        fontSize: 14,
+                      ),
                     ),
                   ],
                 ),
@@ -570,8 +611,11 @@ class _AttendancePageState extends State<AttendancePage>
                           color: const Color(0xFF00BFA5).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(Icons.access_time,
-                            color: Color(0xFF00BFA5), size: 20),
+                        child: const Icon(
+                          Icons.access_time,
+                          color: Color(0xFF00BFA5),
+                          size: 20,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -590,7 +634,9 @@ class _AttendancePageState extends State<AttendancePage>
                               Text(
                                 '${_formatHours(hours)} hrs',
                                 style: const TextStyle(
-                                    fontSize: 12, color: Color(0xFF8A96B0)),
+                                  fontSize: 12,
+                                  color: Color(0xFF8A96B0),
+                                ),
                               ),
                           ],
                         ),
@@ -606,7 +652,11 @@ class _AttendancePageState extends State<AttendancePage>
   }
 
   Widget _buildStatCard(
-      String label, String value, IconData icon, Color color) {
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -653,7 +703,9 @@ class _AttendancePageState extends State<AttendancePage>
                 onPressed: () {
                   setState(() {
                     _selectedMonth = DateTime(
-                        _selectedMonth.year, _selectedMonth.month - 1);
+                      _selectedMonth.year,
+                      _selectedMonth.month - 1,
+                    );
                   });
                   _fetchMonthlySummary();
                 },
@@ -671,7 +723,9 @@ class _AttendancePageState extends State<AttendancePage>
                 onPressed: () {
                   setState(() {
                     _selectedMonth = DateTime(
-                        _selectedMonth.year, _selectedMonth.month + 1);
+                      _selectedMonth.year,
+                      _selectedMonth.month + 1,
+                    );
                   });
                   _fetchMonthlySummary();
                 },
@@ -682,22 +736,22 @@ class _AttendancePageState extends State<AttendancePage>
         Expanded(
           child: _loadingMonthly
               ? const Center(
-                  child:
-                      CircularProgressIndicator(color: Color(0xFF3B6FE8)))
+                  child: CircularProgressIndicator(color: Color(0xFF3B6FE8)),
+                )
               : _monthlySummary == null
-                  ? _buildRetryWidget(
-                      'Could not load monthly data', _fetchMonthlySummary)
-                  : _buildMonthlyContent(),
+              ? _buildRetryWidget(
+                  'Could not load monthly data',
+                  _fetchMonthlySummary,
+                )
+              : _buildMonthlyContent(),
         ),
       ],
     );
   }
 
   Widget _buildMonthlyContent() {
-    final summary =
-        _monthlySummary!['summary'] as Map<String, dynamic>? ?? {};
-    final calendar =
-        _monthlySummary!['calendar'] as List<dynamic>? ?? [];
+    final summary = _monthlySummary!['summary'] as Map<String, dynamic>? ?? {};
+    final calendar = _monthlySummary!['calendar'] as List<dynamic>? ?? [];
 
     return RefreshIndicator(
       onRefresh: _fetchMonthlySummary,
@@ -753,44 +807,56 @@ class _AttendancePageState extends State<AttendancePage>
         Row(
           children: [
             Expanded(
-                child: _buildSummaryTile(
-                    'Present',
-                    '${summary['days_present'] ?? 0}',
-                    const Color(0xFF00BFA5))),
+              child: _buildSummaryTile(
+                'Present',
+                '${summary['days_present'] ?? 0}',
+                const Color(0xFF00BFA5),
+              ),
+            ),
             const SizedBox(width: 10),
             Expanded(
-                child: _buildSummaryTile(
-                    'Absent',
-                    '${summary['days_absent'] ?? 0}',
-                    const Color(0xFFE91E63))),
+              child: _buildSummaryTile(
+                'Absent',
+                '${summary['days_absent'] ?? 0}',
+                const Color(0xFFE91E63),
+              ),
+            ),
             const SizedBox(width: 10),
             Expanded(
-                child: _buildSummaryTile(
-                    'Total Hrs',
-                    _formatHours(summary['total_hours']),
-                    const Color(0xFF3B6FE8))),
+              child: _buildSummaryTile(
+                'Total Hrs',
+                _formatHours(summary['total_hours']),
+                const Color(0xFF3B6FE8),
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 10),
         Row(
           children: [
             Expanded(
-                child: _buildSummaryTile(
-                    'Overtime',
-                    _formatHours(summary['overtime'] ?? summary['ot']),
-                    const Color(0xFF7C4DFF))),
+              child: _buildSummaryTile(
+                'Overtime',
+                _formatHours(summary['overtime'] ?? summary['ot']),
+                const Color(0xFF7C4DFF),
+              ),
+            ),
             const SizedBox(width: 10),
             Expanded(
-                child: _buildSummaryTile(
-                    'Undertime',
-                    _formatHours(summary['undertime']),
-                    const Color(0xFFFF7043))),
+              child: _buildSummaryTile(
+                'Undertime',
+                _formatHours(summary['undertime']),
+                const Color(0xFFFF7043),
+              ),
+            ),
             const SizedBox(width: 10),
             Expanded(
-                child: _buildSummaryTile(
-                    'Late',
-                    '${summary['late'] ?? summary['late_minutes'] ?? 0}m',
-                    const Color(0xFFFFB300))),
+              child: _buildSummaryTile(
+                'Late',
+                '${summary['late'] ?? summary['late_minutes'] ?? 0}m',
+                const Color(0xFFFFB300),
+              ),
+            ),
           ],
         ),
         if (summary['avg_hours_per_day'] != null) ...[
@@ -798,10 +864,12 @@ class _AttendancePageState extends State<AttendancePage>
           Row(
             children: [
               Expanded(
-                  child: _buildSummaryTile(
-                      'Avg/Day',
-                      _formatHours(summary['avg_hours_per_day']),
-                      const Color(0xFF8A96B0))),
+                child: _buildSummaryTile(
+                  'Avg/Day',
+                  _formatHours(summary['avg_hours_per_day']),
+                  const Color(0xFF8A96B0),
+                ),
+              ),
               const SizedBox(width: 10),
               const Expanded(child: SizedBox()),
               const SizedBox(width: 10),
@@ -918,14 +986,18 @@ class _AttendancePageState extends State<AttendancePage>
           if (overtime != null && _toDouble(overtime) > 0)
             Padding(
               padding: const EdgeInsets.only(left: 6),
-              child:
-                  _buildDayChip('+${_formatHours(overtime)}', const Color(0xFF7C4DFF)),
+              child: _buildDayChip(
+                '+${_formatHours(overtime)}',
+                const Color(0xFF7C4DFF),
+              ),
             ),
           if (undertime != null && _toDouble(undertime) > 0)
             Padding(
               padding: const EdgeInsets.only(left: 6),
               child: _buildDayChip(
-                  '-${_formatHours(undertime)}', const Color(0xFFFF7043)),
+                '-${_formatHours(undertime)}',
+                const Color(0xFFFF7043),
+              ),
             ),
           if (late != null && _toDouble(late) > 0)
             Padding(
@@ -946,7 +1018,11 @@ class _AttendancePageState extends State<AttendancePage>
       ),
       child: Text(
         text,
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color),
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
       ),
     );
   }
@@ -967,8 +1043,10 @@ class _AttendancePageState extends State<AttendancePage>
                 icon: const Icon(Icons.chevron_left, color: Color(0xFF1A2035)),
                 onPressed: () {
                   setState(() {
-                    _weeklyMonth =
-                        DateTime(_weeklyMonth.year, _weeklyMonth.month - 1);
+                    _weeklyMonth = DateTime(
+                      _weeklyMonth.year,
+                      _weeklyMonth.month - 1,
+                    );
                   });
                   _fetchWeeklyData();
                 },
@@ -985,8 +1063,10 @@ class _AttendancePageState extends State<AttendancePage>
                 icon: const Icon(Icons.chevron_right, color: Color(0xFF1A2035)),
                 onPressed: () {
                   setState(() {
-                    _weeklyMonth =
-                        DateTime(_weeklyMonth.year, _weeklyMonth.month + 1);
+                    _weeklyMonth = DateTime(
+                      _weeklyMonth.year,
+                      _weeklyMonth.month + 1,
+                    );
                   });
                   _fetchWeeklyData();
                 },
@@ -997,12 +1077,14 @@ class _AttendancePageState extends State<AttendancePage>
         Expanded(
           child: _loadingWeekly
               ? const Center(
-                  child:
-                      CircularProgressIndicator(color: Color(0xFF3B6FE8)))
+                  child: CircularProgressIndicator(color: Color(0xFF3B6FE8)),
+                )
               : _weeklyData == null
-                  ? _buildRetryWidget(
-                      'Could not load weekly data', _fetchWeeklyData)
-                  : _buildWeeklyContent(),
+              ? _buildRetryWidget(
+                  'Could not load weekly data',
+                  _fetchWeeklyData,
+                )
+              : _buildWeeklyContent(),
         ),
       ],
     );
@@ -1083,7 +1165,9 @@ class _AttendancePageState extends State<AttendancePage>
                     if (totalHours != null)
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF3B6FE8),
                           borderRadius: BorderRadius.circular(8),
@@ -1101,7 +1185,9 @@ class _AttendancePageState extends State<AttendancePage>
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFF00BFA5),
                           borderRadius: BorderRadius.circular(8),
@@ -1141,12 +1227,9 @@ class _AttendancePageState extends State<AttendancePage>
                 ? status[0].toUpperCase() + status.substring(1)
                 : 'Unknown';
             return Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: Colors.grey.shade100),
-                ),
+                border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
               ),
               child: Row(
                 children: [
@@ -1162,7 +1245,9 @@ class _AttendancePageState extends State<AttendancePage>
                     child: Text(
                       dateLabel,
                       style: const TextStyle(
-                          fontSize: 13, color: Color(0xFF1A2035)),
+                        fontSize: 13,
+                        color: Color(0xFF1A2035),
+                      ),
                     ),
                   ),
                   Text(
@@ -1217,8 +1302,10 @@ class _AttendancePageState extends State<AttendancePage>
         children: [
           Icon(Icons.error_outline, size: 48, color: Colors.red.shade300),
           const SizedBox(height: 12),
-          Text(message,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+          Text(
+            message,
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+          ),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: onRetry,

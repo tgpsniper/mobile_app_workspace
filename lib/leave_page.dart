@@ -63,14 +63,14 @@ class _LeavePageState extends State<LeavePage> {
       );
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body);
-        final List employees =
-            data is List ? data : (data['employees'] ?? []);
+        final List employees = data is List ? data : (data['employees'] ?? []);
         final match = employees.cast<Map<String, dynamic>>().where((e) {
           final empEmail = (e['email'] ?? '').toString().toLowerCase();
           return empEmail == widget.email.toLowerCase();
         });
         if (match.isNotEmpty) {
-          _contactUuid = match.first['contact_uuid'] ??
+          _contactUuid =
+              match.first['contact_uuid'] ??
               match.first['uuid'] ??
               match.first['id']?.toString();
         }
@@ -126,7 +126,9 @@ class _LeavePageState extends State<LeavePage> {
         if (data['ok'] == true) {
           final rawLeaves = data['leaves'];
           _leaves = (rawLeaves is List)
-              ? rawLeaves.map((e) => Map<String, dynamic>.from(e as Map)).toList()
+              ? rawLeaves
+                    .map((e) => Map<String, dynamic>.from(e as Map))
+                    .toList()
               : <Map<String, dynamic>>[];
           _balances = data['balances'] is Map
               ? Map<String, dynamic>.from(data['balances'] as Map)
@@ -243,44 +245,46 @@ class _LeavePageState extends State<LeavePage> {
     return Scaffold(
       backgroundColor: const Color(0xFF1A2035),
       appBar: AppBar(
-        title: const Text('Leave Request',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: const Text(
+          'Leave Request',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
         backgroundColor: const Color(0xFF1A2035),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: _loading
           ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFF3B6FE8)))
+              child: CircularProgressIndicator(color: Color(0xFF3B6FE8)),
+            )
           : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(_error!,
-                          style: const TextStyle(color: Colors.white70)),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: _resolveUuidAndFetch,
-                        child: const Text('Retry'),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(_error!, style: const TextStyle(color: Colors.white70)),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: _resolveUuidAndFetch,
+                    child: const Text('Retry'),
                   ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _fetchLeaves,
-                  color: const Color(0xFF3B6FE8),
-                  child: ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      _buildBalanceCards(),
-                      const SizedBox(height: 20),
-                      _buildFileLeaveForm(),
-                      const SizedBox(height: 20),
-                      _buildLeaveHistory(),
-                    ],
-                  ),
-                ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _fetchLeaves,
+              color: const Color(0xFF3B6FE8),
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _buildBalanceCards(),
+                  const SizedBox(height: 20),
+                  _buildFileLeaveForm(),
+                  const SizedBox(height: 20),
+                  _buildLeaveHistory(),
+                ],
+              ),
+            ),
     );
   }
 
@@ -296,22 +300,27 @@ class _LeavePageState extends State<LeavePage> {
     for (final key in _balances.keys) {
       final k = key.toString().toLowerCase();
       if (!['vacation', 'sick', 'sil'].contains(k)) {
-        items.add(_BalanceItem(
-          _capitalize(key.toString()),
-          _bal(key.toString()),
-          const Color(0xFF7C4DFF),
-        ));
+        items.add(
+          _BalanceItem(
+            _capitalize(key.toString()),
+            _bal(key.toString()),
+            const Color(0xFF7C4DFF),
+          ),
+        );
       }
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Leave Balances',
-            style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold)),
+        const Text(
+          'Leave Balances',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 10),
         Wrap(
           spacing: 10,
@@ -333,13 +342,22 @@ class _LeavePageState extends State<LeavePage> {
       ),
       child: Column(
         children: [
-          Text(b.value,
-              style: TextStyle(
-                  color: b.color, fontSize: 22, fontWeight: FontWeight.bold)),
+          Text(
+            b.value,
+            style: TextStyle(
+              color: b.color,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(b.label,
-              style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7), fontSize: 11)),
+          Text(
+            b.label,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 11,
+            ),
+          ),
         ],
       ),
     );
@@ -348,7 +366,8 @@ class _LeavePageState extends State<LeavePage> {
   String _bal(String key) {
     final v = _balances[key] ?? _balances[key.toLowerCase()];
     if (v == null) return '0';
-    if (v is num) return v % 1 == 0 ? v.toInt().toString() : v.toStringAsFixed(1);
+    if (v is num)
+      return v % 1 == 0 ? v.toInt().toString() : v.toStringAsFixed(1);
     return v.toString();
   }
 
@@ -364,11 +383,14 @@ class _LeavePageState extends State<LeavePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('File Leave Request',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold)),
+          const Text(
+            'File Leave Request',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 14),
 
           // Leave Type
@@ -379,7 +401,10 @@ class _LeavePageState extends State<LeavePage> {
             decoration: _inputDecor(),
             dropdownColor: const Color(0xFF232A3E),
             style: const TextStyle(
-                fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
             items: _leaveTypes
                 .map((t) => DropdownMenuItem(value: t, child: Text(t)))
                 .toList(),
@@ -442,7 +467,8 @@ class _LeavePageState extends State<LeavePage> {
                 backgroundColor: const Color(0xFF00BFA5),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 elevation: 0,
               ),
               child: _filing
@@ -450,10 +476,17 @@ class _LeavePageState extends State<LeavePage> {
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white))
-                  : const Text('Submit Leave Request',
-                      style:
-                          TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Submit Leave Request',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
             ),
           ),
         ],
@@ -474,12 +507,13 @@ class _LeavePageState extends State<LeavePage> {
         child: Row(
           children: [
             Expanded(
-              child: Text(text,
-                  style: TextStyle(
-                      color: text == 'Select'
-                          ? Colors.white38
-                          : Colors.white,
-                      fontSize: 14)),
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: text == 'Select' ? Colors.white38 : Colors.white,
+                  fontSize: 14,
+                ),
+              ),
             ),
             const Icon(Icons.calendar_today, color: Colors.white38, size: 16),
           ],
@@ -489,12 +523,15 @@ class _LeavePageState extends State<LeavePage> {
   }
 
   Widget _label(String text) {
-    return Text(text,
-        style: TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            color: Colors.white.withValues(alpha: 0.4),
-            letterSpacing: 0.8));
+    return Text(
+      text,
+      style: TextStyle(
+        fontSize: 10,
+        fontWeight: FontWeight.w600,
+        color: Colors.white.withValues(alpha: 0.4),
+        letterSpacing: 0.8,
+      ),
+    );
   }
 
   InputDecoration _inputDecor({String? hint}) {
@@ -516,11 +553,14 @@ class _LeavePageState extends State<LeavePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Leave History',
-            style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold)),
+        const Text(
+          'Leave History',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 10),
         if (_leaves.isEmpty)
           Container(
@@ -531,8 +571,10 @@ class _LeavePageState extends State<LeavePage> {
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Center(
-              child: Text('No leave records found.',
-                  style: TextStyle(color: Colors.white38, fontSize: 14)),
+              child: Text(
+                'No leave records found.',
+                style: TextStyle(color: Colors.white38, fontSize: 14),
+              ),
             ),
           )
         else
@@ -586,26 +628,34 @@ class _LeavePageState extends State<LeavePage> {
           Row(
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFF3B6FE8).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text(type,
-                    style: const TextStyle(
-                        color: Color(0xFF3B6FE8),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600)),
+                child: Text(
+                  type,
+                  style: const TextStyle(
+                    color: Color(0xFF3B6FE8),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
               const Spacer(),
               Icon(statusIcon, color: statusColor, size: 16),
               const SizedBox(width: 4),
-              Text(_capitalize(status),
-                  style: TextStyle(
-                      color: statusColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600)),
+              Text(
+                _capitalize(status),
+                style: TextStyle(
+                  color: statusColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -616,9 +666,10 @@ class _LeavePageState extends State<LeavePage> {
               const Icon(Icons.date_range, color: Colors.white38, size: 14),
               const SizedBox(width: 6),
               Expanded(
-                child: Text(dateRange,
-                    style: const TextStyle(
-                        color: Colors.white70, fontSize: 13)),
+                child: Text(
+                  dateRange,
+                  style: const TextStyle(color: Colors.white70, fontSize: 13),
+                ),
               ),
             ],
           ),
@@ -626,15 +677,19 @@ class _LeavePageState extends State<LeavePage> {
           // Reason
           if (reason.isNotEmpty) ...[
             const SizedBox(height: 6),
-            Text(reason,
-                style: const TextStyle(color: Colors.white54, fontSize: 12)),
+            Text(
+              reason,
+              style: const TextStyle(color: Colors.white54, fontSize: 12),
+            ),
           ],
 
           // Filed date
           if (filedDate.isNotEmpty) ...[
             const SizedBox(height: 6),
-            Text('Filed: $filedDate',
-                style: const TextStyle(color: Colors.white30, fontSize: 11)),
+            Text(
+              'Filed: $filedDate',
+              style: const TextStyle(color: Colors.white30, fontSize: 11),
+            ),
           ],
         ],
       ),

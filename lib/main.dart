@@ -120,7 +120,9 @@ class _LoginPageState extends State<LoginPage> {
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Employee not found. Check your email.')),
+            const SnackBar(
+              content: Text('Employee not found. Check your email.'),
+            ),
           );
         }
       } else {
@@ -131,9 +133,9 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Connection error: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Connection error: $e')));
     }
   }
 
@@ -209,10 +211,7 @@ class _LoginPageState extends State<LoginPage> {
                 // Subtitle
                 const Text(
                   'Sign in to manage your network',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Color(0xFF8A96B0),
-                  ),
+                  style: TextStyle(fontSize: 13, color: Color(0xFF8A96B0)),
                 ),
                 const SizedBox(height: 28),
 
@@ -266,7 +265,9 @@ class _LoginPageState extends State<LoginPage> {
                 // Security Check
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF3F5FA),
                     borderRadius: BorderRadius.circular(12),
@@ -288,7 +289,9 @@ class _LoginPageState extends State<LoginPage> {
                           // Math equation badge
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 10),
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFF1A2035),
                               borderRadius: BorderRadius.circular(30),
@@ -322,7 +325,9 @@ class _LoginPageState extends State<LoginPage> {
                                   filled: true,
                                   fillColor: Colors.white,
                                   contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
+                                    horizontal: 12,
+                                    vertical: 8,
+                                  ),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(8),
                                     borderSide: BorderSide.none,
@@ -358,7 +363,9 @@ class _LoginPageState extends State<LoginPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF3B6FE8),
                       foregroundColor: Colors.white,
-                      disabledBackgroundColor: const Color(0xFF3B6FE8).withValues(alpha: 0.6),
+                      disabledBackgroundColor: const Color(
+                        0xFF3B6FE8,
+                      ).withValues(alpha: 0.6),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -366,9 +373,11 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     child: _isLoading
                         ? const SizedBox(
-                            width: 22, height: 22,
+                            width: 22,
+                            height: 22,
                             child: CircularProgressIndicator(
-                              strokeWidth: 2.5, color: Colors.white,
+                              strokeWidth: 2.5,
+                              color: Colors.white,
                             ),
                           )
                         : const Row(
@@ -425,8 +434,10 @@ class _LoginPageState extends State<LoginPage> {
         filled: true,
         fillColor: const Color(0xFFF3F5FA),
         suffixIcon: suffixIcon,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(10),
           borderSide: BorderSide.none,

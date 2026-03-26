@@ -365,7 +365,11 @@ class WebSocketService {
 
   // --- Notifications ---
 
-  void getNotifications({required String contactUuid, int limit = 50, int offset = 0}) {
+  void getNotifications({
+    required String contactUuid,
+    int limit = 50,
+    int offset = 0,
+  }) {
     send({
       'action': 'ep_notifications_list',
       'contact_uuid': contactUuid,
@@ -375,13 +379,13 @@ class WebSocketService {
   }
 
   void getNotificationCount({required String contactUuid}) {
-    send({
-      'action': 'ep_notifications_count',
-      'contact_uuid': contactUuid,
-    });
+    send({'action': 'ep_notifications_count', 'contact_uuid': contactUuid});
   }
 
-  void markNotificationRead({required String contactUuid, int? notificationId}) {
+  void markNotificationRead({
+    required String contactUuid,
+    int? notificationId,
+  }) {
     final msg = <String, dynamic>{
       'action': 'ep_notifications_read',
       'contact_uuid': contactUuid,

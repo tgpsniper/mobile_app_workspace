@@ -70,7 +70,8 @@ class _NotificationPageState extends State<NotificationPage> {
         } else {
           setState(() {
             _loading = false;
-            _error = data['error']?.toString() ?? 'Failed to load notifications.';
+            _error =
+                data['error']?.toString() ?? 'Failed to load notifications.';
           });
         }
       } else {
@@ -144,7 +145,9 @@ class _NotificationPageState extends State<NotificationPage> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: Row(
             children: [
               Container(
@@ -223,154 +226,159 @@ class _NotificationPageState extends State<NotificationPage> {
               child: CircularProgressIndicator(color: Color(0xFF3B6FE8)),
             )
           : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline,
-                          size: 48, color: Colors.red.shade300),
-                      const SizedBox(height: 12),
-                      Text(
-                        _error!,
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            _loading = true;
-                            _error = null;
-                          });
-                          _fetchNotifications();
-                        },
-                        child: const Text('Retry'),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 48,
+                    color: Colors.red.shade300,
                   ),
-                )
-              : _notifications.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                  const SizedBox(height: 12),
+                  Text(
+                    _error!,
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _loading = true;
+                        _error = null;
+                      });
+                      _fetchNotifications();
+                    },
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            )
+          : _notifications.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.notifications_off_outlined,
+                    size: 64,
+                    color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No notifications',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey.shade500,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: () async {
+                await _fetchNotifications();
+              },
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                itemCount: _notifications.length,
+                itemBuilder: (context, index) {
+                  final n = _notifications[index];
+                  return GestureDetector(
+                    onTap: () => _tapNotification(index),
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 4,
+                      ),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: n.isRead
+                            ? Colors.white
+                            : const Color(0xFFEBF0FF),
+                        borderRadius: BorderRadius.circular(12),
+                        border: n.isRead
+                            ? null
+                            : Border.all(
+                                color: const Color(
+                                  0xFF3B6FE8,
+                                ).withValues(alpha: 0.3),
+                              ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(Icons.notifications_off_outlined,
-                              size: 64, color: Colors.grey.shade400),
-                          const SizedBox(height: 16),
-                          Text(
-                            'No notifications',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey.shade500,
-                              fontWeight: FontWeight.w500,
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: n.color.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(n.icon, color: n.color, size: 22),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        n.title,
+                                        style: TextStyle(
+                                          fontWeight: n.isRead
+                                              ? FontWeight.w500
+                                              : FontWeight.bold,
+                                          fontSize: 14,
+                                          color: const Color(0xFF1A2035),
+                                        ),
+                                      ),
+                                    ),
+                                    Text(
+                                      _formatTime(n.time),
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF8A96B0),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  n.body,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: n.isRead
+                                        ? const Color(0xFF8A96B0)
+                                        : const Color(0xFF4A5568),
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: () async {
-                        await _fetchNotifications();
-                      },
-                      child: ListView.builder(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        itemCount: _notifications.length,
-                        itemBuilder: (context, index) {
-                          final n = _notifications[index];
-                          return GestureDetector(
-                            onTap: () => _tapNotification(index),
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 4),
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: n.isRead
-                                    ? Colors.white
-                                    : const Color(0xFFEBF0FF),
-                                borderRadius: BorderRadius.circular(12),
-                                border: n.isRead
-                                    ? null
-                                    : Border.all(
-                                        color: const Color(0xFF3B6FE8)
-                                            .withValues(alpha: 0.3),
-                                      ),
-                              ),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: n.color.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child:
-                                        Icon(n.icon, color: n.color, size: 22),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: Text(
-                                                n.title,
-                                                style: TextStyle(
-                                                  fontWeight: n.isRead
-                                                      ? FontWeight.w500
-                                                      : FontWeight.bold,
-                                                  fontSize: 14,
-                                                  color:
-                                                      const Color(0xFF1A2035),
-                                                ),
-                                              ),
-                                            ),
-                                            Text(
-                                              _formatTime(n.time),
-                                              style: const TextStyle(
-                                                fontSize: 11,
-                                                color: Color(0xFF8A96B0),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          n.body,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            color: n.isRead
-                                                ? const Color(0xFF8A96B0)
-                                                : const Color(0xFF4A5568),
-                                            height: 1.3,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  if (!n.isRead)
-                                    Container(
-                                      margin: const EdgeInsets.only(
-                                          left: 8, top: 4),
-                                      width: 8,
-                                      height: 8,
-                                      decoration: const BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Color(0xFF3B6FE8),
-                                      ),
-                                    ),
-                                ],
+                          if (!n.isRead)
+                            Container(
+                              margin: const EdgeInsets.only(left: 8, top: 4),
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Color(0xFF3B6FE8),
                               ),
                             ),
-                          );
-                        },
+                        ],
                       ),
                     ),
+                  );
+                },
+              ),
+            ),
     );
   }
 }
@@ -407,7 +415,7 @@ class _NotificationItem {
       body: json['body'] ?? '',
       time: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString())?.toLocal() ??
-              DateTime.now()
+                DateTime.now()
           : DateTime.now(),
       isRead: json['is_read'] == true || json['is_read'] == 1,
     );

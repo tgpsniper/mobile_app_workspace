@@ -22,7 +22,14 @@ class _ChatPageState extends State<ChatPage> {
   final Map<int, Set<String>> _myReactions = {};
 
   static const List<String> _availableReactions = [
-    '👍', '❤️', '😂', '😮', '😥', '😡', '🔥', '🎉',
+    '👍',
+    '❤️',
+    '😂',
+    '😮',
+    '😥',
+    '😡',
+    '🔥',
+    '🎉',
   ];
 
   List<Contact> _contacts = [];
@@ -170,12 +177,14 @@ class _ChatPageState extends State<ChatPage> {
 
     // Add to local list immediately
     setState(() {
-      _messages.add(ChatMessage(
-        senderEmail: myEmail,
-        receiverEmail: _selectedContact!.email,
-        text: text,
-        createdAt: DateTime.now(),
-      ));
+      _messages.add(
+        ChatMessage(
+          senderEmail: myEmail,
+          receiverEmail: _selectedContact!.email,
+          text: text,
+          createdAt: DateTime.now(),
+        ),
+      );
       _messageController.clear();
     });
 
@@ -218,16 +227,10 @@ class _ChatPageState extends State<ChatPage> {
 
     // Load message history
     final myEmail = _wsService.currentEmail ?? widget.username;
-    _wsService.getMessages(
-      userEmail: myEmail,
-      otherEmail: contact.email,
-    );
+    _wsService.getMessages(userEmail: myEmail, otherEmail: contact.email);
 
     // Mark as read
-    _wsService.markRead(
-      userEmail: myEmail,
-      otherEmail: contact.email,
-    );
+    _wsService.markRead(userEmail: myEmail, otherEmail: contact.email);
   }
 
   void _parseReactionsMap(dynamic reactionsMap) {
@@ -297,7 +300,8 @@ class _ChatPageState extends State<ChatPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: _availableReactions.map((emoji) {
-                  final isSelected = _myReactions[msg.id]?.contains(emoji) ?? false;
+                  final isSelected =
+                      _myReactions[msg.id]?.contains(emoji) ?? false;
                   return GestureDetector(
                     onTap: () {
                       Navigator.pop(context);
@@ -311,7 +315,10 @@ class _ChatPageState extends State<ChatPage> {
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(12),
                         border: isSelected
-                            ? Border.all(color: const Color(0xFF3B6FE8), width: 1.5)
+                            ? Border.all(
+                                color: const Color(0xFF3B6FE8),
+                                width: 1.5,
+                              )
                             : null,
                       ),
                       child: Text(emoji, style: const TextStyle(fontSize: 28)),
@@ -392,8 +399,10 @@ class _ChatPageState extends State<ChatPage> {
           },
         ),
         title: _showContacts
-            ? const Text('Team Chat',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18))
+            ? const Text(
+                'Team Chat',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              )
             : Row(
                 children: [
                   Stack(
@@ -404,9 +413,10 @@ class _ChatPageState extends State<ChatPage> {
                         child: Text(
                           _selectedContact!.name[0],
                           style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold),
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       Positioned(
@@ -431,16 +441,20 @@ class _ChatPageState extends State<ChatPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(_selectedContact!.name,
-                            style: const TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.w600),
-                            overflow: TextOverflow.ellipsis),
+                        Text(
+                          _selectedContact!.name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         Text(
                           _isTyping
                               ? 'typing...'
                               : _selectedContact!.online
-                                  ? 'Online'
-                                  : 'Offline',
+                              ? 'Online'
+                              : 'Offline',
                           style: TextStyle(
                             fontSize: 11,
                             color: _isTyping
@@ -505,7 +519,8 @@ class _ChatPageState extends State<ChatPage> {
       itemBuilder: (context, index) {
         final contact = sorted[index];
         // Skip self
-        if (contact.email == _wsService.currentEmail) return const SizedBox.shrink();
+        if (contact.email == _wsService.currentEmail)
+          return const SizedBox.shrink();
 
         return Container(
           margin: const EdgeInsets.only(bottom: 8),
@@ -514,14 +529,17 @@ class _ChatPageState extends State<ChatPage> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: ListTile(
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 6,
+            ),
             leading: Stack(
               children: [
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor:
-                      const Color(0xFF3B6FE8).withValues(alpha: 0.1),
+                  backgroundColor: const Color(
+                    0xFF3B6FE8,
+                  ).withValues(alpha: 0.1),
                   child: Text(
                     contact.name[0].toUpperCase(),
                     style: const TextStyle(
@@ -538,7 +556,9 @@ class _ChatPageState extends State<ChatPage> {
                     width: 14,
                     height: 14,
                     decoration: BoxDecoration(
-                      color: contact.online ? Colors.green : Colors.grey.shade400,
+                      color: contact.online
+                          ? Colors.green
+                          : Colors.grey.shade400,
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2),
                     ),
@@ -563,7 +583,10 @@ class _ChatPageState extends State<ChatPage> {
               children: [
                 if (contact.online)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.green.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
@@ -586,7 +609,8 @@ class _ChatPageState extends State<ChatPage> {
               ],
             ),
             shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
+              borderRadius: BorderRadius.circular(12),
+            ),
             onTap: () => _selectContact(contact),
           ),
         );
@@ -606,8 +630,11 @@ class _ChatPageState extends State<ChatPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.chat_bubble_outline,
-                          size: 48, color: Colors.grey.shade400),
+                      Icon(
+                        Icons.chat_bubble_outline,
+                        size: 48,
+                        color: Colors.grey.shade400,
+                      ),
                       const SizedBox(height: 12),
                       Text(
                         'Start a conversation with ${_selectedContact?.name ?? ""}',
@@ -659,11 +686,15 @@ class _ChatPageState extends State<ChatPage> {
                     decoration: InputDecoration(
                       hintText: 'Type a message...',
                       hintStyle: const TextStyle(
-                          color: Color(0xFFB0BAD0), fontSize: 14),
+                        color: Color(0xFFB0BAD0),
+                        fontSize: 14,
+                      ),
                       filled: true,
                       fillColor: const Color(0xFFF3F5FA),
                       contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 10),
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide.none,
@@ -738,15 +769,20 @@ class _ChatPageState extends State<ChatPage> {
         onDoubleTap: () => _showReactionPicker(msg),
         child: Container(
           margin: EdgeInsets.only(bottom: hasReactions ? 4 : 10),
-          constraints:
-              BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.75,
+          ),
           child: Column(
-            crossAxisAlignment:
-                isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+            crossAxisAlignment: isMe
+                ? CrossAxisAlignment.end
+                : CrossAxisAlignment.start,
             children: [
               // Message bubble
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: isMe ? const Color(0xFF3B6FE8) : Colors.white,
                   borderRadius: BorderRadius.only(
@@ -764,8 +800,9 @@ class _ChatPageState extends State<ChatPage> {
                   ],
                 ),
                 child: Column(
-                  crossAxisAlignment:
-                      isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                  crossAxisAlignment: isMe
+                      ? CrossAxisAlignment.end
+                      : CrossAxisAlignment.start,
                   children: [
                     if (!isMe && msg.senderName != null)
                       Padding(
@@ -819,17 +856,21 @@ class _ChatPageState extends State<ChatPage> {
                           onTap: () => _toggleReaction(msg.id!, emoji),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: isMine
-                                  ? const Color(0xFF3B6FE8)
-                                      .withValues(alpha: 0.15)
+                                  ? const Color(
+                                      0xFF3B6FE8,
+                                    ).withValues(alpha: 0.15)
                                   : Colors.white,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: isMine
-                                    ? const Color(0xFF3B6FE8)
-                                        .withValues(alpha: 0.4)
+                                    ? const Color(
+                                        0xFF3B6FE8,
+                                      ).withValues(alpha: 0.4)
                                     : Colors.grey.withValues(alpha: 0.3),
                               ),
                               boxShadow: [
@@ -842,8 +883,10 @@ class _ChatPageState extends State<ChatPage> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(emoji,
-                                    style: const TextStyle(fontSize: 14)),
+                                Text(
+                                  emoji,
+                                  style: const TextStyle(fontSize: 14),
+                                ),
                                 if (count > 1) ...[
                                   const SizedBox(width: 2),
                                   Text(

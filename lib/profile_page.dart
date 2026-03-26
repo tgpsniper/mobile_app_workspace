@@ -100,7 +100,12 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
-    final picked = await _picker.pickImage(source: source, maxWidth: 512, maxHeight: 512, imageQuality: 80);
+    final picked = await _picker.pickImage(
+      source: source,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 80,
+    );
     if (picked == null) return;
 
     final dir = await getApplicationDocumentsDirectory();
@@ -124,7 +129,8 @@ class _ProfilePageState extends State<ProfilePage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 40, height: 4,
+                width: 40,
+                height: 4,
                 decoration: BoxDecoration(
                   color: Colors.white24,
                   borderRadius: BorderRadius.circular(2),
@@ -133,20 +139,33 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 16),
               const Text(
                 'Profile Photo',
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 16),
               ListTile(
                 leading: const Icon(Icons.camera_alt, color: Color(0xFF3B6FE8)),
-                title: const Text('Take Photo', style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'Take Photo',
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.camera);
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.photo_library, color: Color(0xFF3B6FE8)),
-                title: const Text('Choose from Gallery', style: TextStyle(color: Colors.white)),
+                leading: const Icon(
+                  Icons.photo_library,
+                  color: Color(0xFF3B6FE8),
+                ),
+                title: const Text(
+                  'Choose from Gallery',
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.gallery);
@@ -154,11 +173,18 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               if (_profileImage != null)
                 ListTile(
-                  leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                  title: const Text('Remove Photo', style: TextStyle(color: Colors.redAccent)),
+                  leading: const Icon(
+                    Icons.delete_outline,
+                    color: Colors.redAccent,
+                  ),
+                  title: const Text(
+                    'Remove Photo',
+                    style: TextStyle(color: Colors.redAccent),
+                  ),
                   onTap: () async {
                     Navigator.pop(context);
-                    if (_profileImage != null && await _profileImage!.exists()) {
+                    if (_profileImage != null &&
+                        await _profileImage!.exists()) {
                       await _profileImage!.delete();
                     }
                     setState(() => _profileImage = null);
@@ -172,9 +198,12 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   // --- Helper accessors for nested employee data ---
-  Map<String, dynamic> get _employment => _employee['employment'] as Map<String, dynamic>? ?? {};
-  Map<String, dynamic> get _govIds => _employee['gov_ids'] as Map<String, dynamic>? ?? {};
-  Map<String, dynamic> get _emergencyContact => _employee['emergency_contact'] as Map<String, dynamic>? ?? {};
+  Map<String, dynamic> get _employment =>
+      _employee['employment'] as Map<String, dynamic>? ?? {};
+  Map<String, dynamic> get _govIds =>
+      _employee['gov_ids'] as Map<String, dynamic>? ?? {};
+  Map<String, dynamic> get _emergencyContact =>
+      _employee['emergency_contact'] as Map<String, dynamic>? ?? {};
 
   String get _fullName {
     final given = _valRaw(_employee['contact_name_given']);
@@ -216,7 +245,9 @@ class _ProfilePageState extends State<ProfilePage> {
         );
         if (detailResp.statusCode == 200) {
           final data = jsonDecode(detailResp.body) as Map<String, dynamic>;
-          debugPrint('[Profile] API response: ${detailResp.body.substring(0, detailResp.body.length > 500 ? 500 : detailResp.body.length)}');
+          debugPrint(
+            '[Profile] API response: ${detailResp.body.substring(0, detailResp.body.length > 500 ? 500 : detailResp.body.length)}',
+          );
           if (data['ok'] == true && data['employee'] != null) {
             _employee = Map<String, dynamic>.from(data['employee']);
           }
@@ -233,7 +264,9 @@ class _ProfilePageState extends State<ProfilePage> {
   void _startEditing() {
     _nameGivenCtrl.text = _valRaw(_employee['contact_name_given']);
     _nameFamilyCtrl.text = _valRaw(_employee['contact_name_family']);
-    _organizationCtrl.text = _valRaw(_employee['contact_organization']).isEmpty ? 'J2 Network' : _valRaw(_employee['contact_organization']);
+    _organizationCtrl.text = _valRaw(_employee['contact_organization']).isEmpty
+        ? 'J2 Network'
+        : _valRaw(_employee['contact_organization']);
     _titleCtrl.text = _valRaw(_employee['contact_title']);
     _categoryCtrl.text = _valRaw(_employee['contact_category']);
     _phoneCtrl.text = _valRaw(_employee['phone']);
@@ -285,7 +318,9 @@ class _ProfilePageState extends State<ProfilePage> {
         },
       };
 
-      debugPrint('[Profile] PUT /api/employees/$_contactUuid body: ${jsonEncode(body)}');
+      debugPrint(
+        '[Profile] PUT /api/employees/$_contactUuid body: ${jsonEncode(body)}',
+      );
 
       final response = await http.put(
         Uri.parse('$_apiBase/employees/$_contactUuid'),
@@ -296,7 +331,9 @@ class _ProfilePageState extends State<ProfilePage> {
         body: jsonEncode(body),
       );
 
-      debugPrint('[Profile] PUT response (${response.statusCode}): ${response.body}');
+      debugPrint(
+        '[Profile] PUT response (${response.statusCode}): ${response.body}',
+      );
 
       if (mounted) {
         if (response.statusCode == 200) {
@@ -353,12 +390,20 @@ class _ProfilePageState extends State<ProfilePage> {
     final name = _fullName.isEmpty
         ? (widget.displayName ?? widget.email)
         : _fullName;
-    final initials = name.split(' ').where((w) => w.isNotEmpty).map((w) => w[0].toUpperCase()).take(2).join();
+    final initials = name
+        .split(' ')
+        .where((w) => w.isNotEmpty)
+        .map((w) => w[0].toUpperCase())
+        .take(2)
+        .join();
 
     return Scaffold(
       backgroundColor: const Color(0xFF1A2035),
       appBar: AppBar(
-        title: const Text('My Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'My Profile',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: const Color(0xFF1A2035),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -366,13 +411,29 @@ class _ProfilePageState extends State<ProfilePage> {
           if (_isEditing) ...[
             TextButton(
               onPressed: () => setState(() => _isEditing = false),
-              child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white70),
+              ),
             ),
             TextButton(
               onPressed: _isSaving ? null : _saveProfile,
               child: _isSaving
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('Save', style: TextStyle(color: Color(0xFF3B6FE8), fontWeight: FontWeight.bold)),
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Save',
+                      style: TextStyle(
+                        color: Color(0xFF3B6FE8),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
             ),
           ] else ...[
             IconButton(
@@ -389,7 +450,9 @@ class _ProfilePageState extends State<ProfilePage> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF3B6FE8)))
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFF3B6FE8)),
+            )
           : RefreshIndicator(
               onRefresh: _fetchProfile,
               child: SingleChildScrollView(
@@ -432,21 +495,38 @@ class _ProfilePageState extends State<ProfilePage> {
                 CircleAvatar(
                   radius: 36,
                   backgroundColor: const Color(0xFF00BFA5),
-                  backgroundImage: _profileImage != null ? FileImage(_profileImage!) : null,
+                  backgroundImage: _profileImage != null
+                      ? FileImage(_profileImage!)
+                      : null,
                   child: _profileImage == null
-                      ? Text(initials, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold))
+                      ? Text(
+                          initials,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
                       : null,
                 ),
                 Positioned(
-                  right: 0, bottom: 0,
+                  right: 0,
+                  bottom: 0,
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       color: const Color(0xFF3B6FE8),
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF232A3E), width: 2),
+                      border: Border.all(
+                        color: const Color(0xFF232A3E),
+                        width: 2,
+                      ),
                     ),
-                    child: const Icon(Icons.camera_alt, color: Colors.white, size: 14),
+                    child: const Icon(
+                      Icons.camera_alt,
+                      color: Colors.white,
+                      size: 14,
+                    ),
                   ),
                 ),
               ],
@@ -463,7 +543,11 @@ class _ProfilePageState extends State<ProfilePage> {
                       Expanded(
                         child: TextField(
                           controller: _nameGivenCtrl,
-                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                           decoration: _editDecoration('First Name'),
                         ),
                       ),
@@ -471,7 +555,11 @@ class _ProfilePageState extends State<ProfilePage> {
                       Expanded(
                         child: TextField(
                           controller: _nameFamilyCtrl,
-                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                           decoration: _editDecoration('Last Name'),
                         ),
                       ),
@@ -480,23 +568,40 @@ class _ProfilePageState extends State<ProfilePage> {
                 else
                   Text(
                     name,
-                    style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 const SizedBox(height: 4),
                 Text(
-                  _val(_employee['contact_title']) == '--' ? 'No title set' : _val(_employee['contact_title']),
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 13),
+                  _val(_employee['contact_title']) == '--'
+                      ? 'No title set'
+                      : _val(_employee['contact_title']),
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    fontSize: 13,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF00BFA5).withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     _val(_employee['contact_role']).toUpperCase(),
-                    style: const TextStyle(color: Color(0xFF00BFA5), fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                    style: const TextStyle(
+                      color: Color(0xFF00BFA5),
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
               ],
@@ -521,7 +626,10 @@ class _ProfilePageState extends State<ProfilePage> {
               _buildEditField('NICKNAME', _nicknameCtrl),
             ]
           : [
-              _buildFieldRow('ORGANIZATION', _val(_employee['contact_organization'])),
+              _buildFieldRow(
+                'ORGANIZATION',
+                _val(_employee['contact_organization']),
+              ),
               _buildFieldRow('TITLE', _val(_employee['contact_title'])),
               _buildFieldRow('DEPARTMENT', _val(_employee['contact_category'])),
               _buildFieldRow('EMAIL', _val(_employee['email'])),
@@ -537,20 +645,45 @@ class _ProfilePageState extends State<ProfilePage> {
       title: 'Employment Details',
       children: _isEditing
           ? [
-              Row(children: [
-                Expanded(child: _buildEditField('EMPLOYEE ID', _employeeIdCtrl)),
-                const SizedBox(width: 12),
-                Expanded(child: _buildEditField('DATE HIRED', _dateHiredCtrl)),
-              ]),
-              Row(children: [
-                Expanded(child: _buildEditField('EMPLOYMENT TYPE', _employmentTypeCtrl)),
-                const SizedBox(width: 12),
-                Expanded(child: _buildEditField('STATUS', _employmentStatusCtrl)),
-              ]),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildEditField('EMPLOYEE ID', _employeeIdCtrl),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildEditField('DATE HIRED', _dateHiredCtrl),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildEditField(
+                      'EMPLOYMENT TYPE',
+                      _employmentTypeCtrl,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildEditField('STATUS', _employmentStatusCtrl),
+                  ),
+                ],
+              ),
             ]
           : [
-              _buildTwoColumn('EMPLOYEE ID', _val(_employment['employee_id']), 'DATE HIRED', _val(_employment['date_hired'])),
-              _buildTwoColumn('EMPLOYMENT TYPE', _val(_employment['employment_type']), 'STATUS', _val(_employment['employment_status'])),
+              _buildTwoColumn(
+                'EMPLOYEE ID',
+                _val(_employment['employee_id']),
+                'DATE HIRED',
+                _val(_employment['date_hired']),
+              ),
+              _buildTwoColumn(
+                'EMPLOYMENT TYPE',
+                _val(_employment['employment_type']),
+                'STATUS',
+                _val(_employment['employment_status']),
+              ),
             ],
     );
   }
@@ -561,20 +694,38 @@ class _ProfilePageState extends State<ProfilePage> {
       title: 'Government IDs',
       children: _isEditing
           ? [
-              Row(children: [
-                Expanded(child: _buildEditField('TIN', _tinCtrl)),
-                const SizedBox(width: 12),
-                Expanded(child: _buildEditField('SSS NUMBER', _sssCtrl)),
-              ]),
-              Row(children: [
-                Expanded(child: _buildEditField('PHILHEALTH', _philhealthCtrl)),
-                const SizedBox(width: 12),
-                Expanded(child: _buildEditField('PAG-IBIG / HDMF', _pagibigCtrl)),
-              ]),
+              Row(
+                children: [
+                  Expanded(child: _buildEditField('TIN', _tinCtrl)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildEditField('SSS NUMBER', _sssCtrl)),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildEditField('PHILHEALTH', _philhealthCtrl),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildEditField('PAG-IBIG / HDMF', _pagibigCtrl),
+                  ),
+                ],
+              ),
             ]
           : [
-              _buildTwoColumn('TIN', _val(_govIds['tin']), 'SSS NUMBER', _val(_govIds['sss'])),
-              _buildTwoColumn('PHILHEALTH', _val(_govIds['philhealth']), 'PAG-IBIG / HDMF', _val(_govIds['pagibig'])),
+              _buildTwoColumn(
+                'TIN',
+                _val(_govIds['tin']),
+                'SSS NUMBER',
+                _val(_govIds['sss']),
+              ),
+              _buildTwoColumn(
+                'PHILHEALTH',
+                _val(_govIds['philhealth']),
+                'PAG-IBIG / HDMF',
+                _val(_govIds['pagibig']),
+              ),
             ],
     );
   }
@@ -585,20 +736,44 @@ class _ProfilePageState extends State<ProfilePage> {
       title: 'Emergency Contact',
       children: _isEditing
           ? [
-              Row(children: [
-                Expanded(child: _buildEditField('NAME', _emergNameCtrl)),
-                const SizedBox(width: 12),
-                Expanded(child: _buildEditField('RELATIONSHIP', _emergRelCtrl)),
-              ]),
-              Row(children: [
-                Expanded(child: _buildEditField('PHONE', _emergPhoneCtrl, TextInputType.phone)),
-                const SizedBox(width: 12),
-                Expanded(child: _buildEditField('ADDRESS', _emergAddressCtrl)),
-              ]),
+              Row(
+                children: [
+                  Expanded(child: _buildEditField('NAME', _emergNameCtrl)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildEditField('RELATIONSHIP', _emergRelCtrl),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildEditField(
+                      'PHONE',
+                      _emergPhoneCtrl,
+                      TextInputType.phone,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildEditField('ADDRESS', _emergAddressCtrl),
+                  ),
+                ],
+              ),
             ]
           : [
-              _buildTwoColumn('NAME', _val(_emergencyContact['name']), 'RELATIONSHIP', _val(_emergencyContact['relationship'])),
-              _buildTwoColumn('PHONE', _val(_emergencyContact['phone']), 'ADDRESS', _val(_emergencyContact['address'])),
+              _buildTwoColumn(
+                'NAME',
+                _val(_emergencyContact['name']),
+                'RELATIONSHIP',
+                _val(_emergencyContact['relationship']),
+              ),
+              _buildTwoColumn(
+                'PHONE',
+                _val(_emergencyContact['phone']),
+                'ADDRESS',
+                _val(_emergencyContact['address']),
+              ),
             ],
     );
   }
@@ -611,14 +786,24 @@ class _ProfilePageState extends State<ProfilePage> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       filled: true,
       fillColor: Colors.white.withValues(alpha: 0.06),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
-      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: Color(0xFF3B6FE8))),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFF3B6FE8)),
+      ),
       hintText: hint,
       hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2)),
     );
   }
 
-  Widget _buildSection({required IconData icon, required String title, required List<Widget> children}) {
+  Widget _buildSection({
+    required IconData icon,
+    required String title,
+    required List<Widget> children,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -634,7 +819,14 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               Icon(icon, color: const Color(0xFF3B6FE8), size: 20),
               const SizedBox(width: 8),
-              Text(title, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -650,9 +842,24 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.4), letterSpacing: 0.8)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withValues(alpha: 0.4),
+              letterSpacing: 0.8,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
           const SizedBox(height: 8),
           Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
         ],
@@ -666,9 +873,24 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.4), letterSpacing: 0.8)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withValues(alpha: 0.4),
+              letterSpacing: 0.8,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(value, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.5))),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withValues(alpha: 0.5),
+            ),
+          ),
           const SizedBox(height: 8),
           Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
         ],
@@ -676,37 +898,64 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildEditField(String label, TextEditingController controller, [TextInputType? keyboardType]) {
+  Widget _buildEditField(
+    String label,
+    TextEditingController controller, [
+    TextInputType? keyboardType,
+  ]) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.4), letterSpacing: 0.8)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withValues(alpha: 0.4),
+              letterSpacing: 0.8,
+            ),
+          ),
           const SizedBox(height: 4),
           TextField(
             controller: controller,
             keyboardType: keyboardType,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white),
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
             decoration: InputDecoration(
               isDense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 10,
+              ),
               filled: true,
               fillColor: Colors.white.withValues(alpha: 0.06),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.1),
+                ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.1),
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: const BorderSide(color: Color(0xFF3B6FE8)),
               ),
               hintText: 'Enter $label',
-              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2), fontSize: 13, fontWeight: FontWeight.normal),
+              hintStyle: TextStyle(
+                color: Colors.white.withValues(alpha: 0.2),
+                fontSize: 13,
+                fontWeight: FontWeight.normal,
+              ),
             ),
           ),
         ],
@@ -714,7 +963,12 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildTwoColumn(String label1, String value1, String label2, String value2) {
+  Widget _buildTwoColumn(
+    String label1,
+    String value1,
+    String label2,
+    String value2,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Row(
@@ -723,9 +977,24 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label1, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.4), letterSpacing: 0.8)),
+                Text(
+                  label1,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.4),
+                    letterSpacing: 0.8,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(value1, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+                Text(
+                  value1,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
               ],
             ),
           ),
@@ -733,9 +1002,24 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label2, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.4), letterSpacing: 0.8)),
+                Text(
+                  label2,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.4),
+                    letterSpacing: 0.8,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(value2, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+                Text(
+                  value2,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
               ],
             ),
           ),

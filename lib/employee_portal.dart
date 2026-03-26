@@ -118,14 +118,14 @@ class _EmployeePortalState extends State<EmployeePortal> {
       );
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body);
-        final List employees =
-            data is List ? data : (data['employees'] ?? []);
+        final List employees = data is List ? data : (data['employees'] ?? []);
         final match = employees.cast<Map<String, dynamic>>().where((e) {
           final empEmail = (e['email'] ?? '').toString().toLowerCase();
           return empEmail == widget.username.toLowerCase();
         });
         if (match.isNotEmpty) {
-          _contactUuid = match.first['contact_uuid'] ??
+          _contactUuid =
+              match.first['contact_uuid'] ??
               match.first['uuid'] ??
               match.first['id']?.toString();
           if (_contactUuid != null) {
@@ -212,7 +212,9 @@ class _EmployeePortalState extends State<EmployeePortal> {
   void _showNewMessageNotification(ChatMessage msg) {
     final senderName = msg.senderName ?? msg.senderEmail;
     if (senderName.isEmpty) return;
-    final preview = msg.text.length > 50 ? '${msg.text.substring(0, 50)}...' : msg.text;
+    final preview = msg.text.length > 50
+        ? '${msg.text.substring(0, 50)}...'
+        : msg.text;
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -223,7 +225,11 @@ class _EmployeePortalState extends State<EmployeePortal> {
               backgroundColor: const Color(0xFF3B6FE8),
               child: Text(
                 senderName[0].toUpperCase(),
-                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             const SizedBox(width: 10),
@@ -234,7 +240,10 @@ class _EmployeePortalState extends State<EmployeePortal> {
                 children: [
                   Text(
                     senderName,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
                   ),
                   Text(
                     preview,
@@ -326,8 +335,10 @@ class _EmployeePortalState extends State<EmployeePortal> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF3B6FE8),
                   foregroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 14,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -362,9 +373,8 @@ class _EmployeePortalState extends State<EmployeePortal> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => NotificationPage(
-                          contactUuid: _contactUuid!,
-                        ),
+                        builder: (context) =>
+                            NotificationPage(contactUuid: _contactUuid!),
                       ),
                     ).then((_) {
                       // Refresh count when returning from notification page
@@ -455,13 +465,18 @@ class _EmployeePortalState extends State<EmployeePortal> {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            Icon(Icons.verified_user,
-                                color: Colors.greenAccent.shade200, size: 14),
+                            Icon(
+                              Icons.verified_user,
+                              color: Colors.greenAccent.shade200,
+                              size: 14,
+                            ),
                             const SizedBox(width: 4),
                             const Text(
                               'Biometric Verified',
                               style: TextStyle(
-                                  color: Colors.white70, fontSize: 12),
+                                color: Colors.white70,
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
@@ -474,18 +489,20 @@ class _EmployeePortalState extends State<EmployeePortal> {
                               color: _wsStatus == ConnectionStatus.connected
                                   ? Colors.greenAccent.shade200
                                   : _wsStatus == ConnectionStatus.connecting
-                                      ? Colors.orangeAccent
-                                      : Colors.redAccent.shade100,
+                                  ? Colors.orangeAccent
+                                  : Colors.redAccent.shade100,
                             ),
                             const SizedBox(width: 6),
                             Text(
                               _wsStatus == ConnectionStatus.connected
                                   ? 'Live Connected'
                                   : _wsStatus == ConnectionStatus.connecting
-                                      ? 'Connecting...'
-                                      : 'Offline',
+                                  ? 'Connecting...'
+                                  : 'Offline',
                               style: const TextStyle(
-                                  color: Colors.white70, fontSize: 11),
+                                color: Colors.white70,
+                                fontSize: 11,
+                              ),
                             ),
                             if (_wsStatus == ConnectionStatus.disconnected ||
                                 _wsStatus == ConnectionStatus.error)
@@ -493,8 +510,11 @@ class _EmployeePortalState extends State<EmployeePortal> {
                                 onTap: () => _wsService.connect(),
                                 child: const Padding(
                                   padding: EdgeInsets.only(left: 6),
-                                  child: Icon(Icons.refresh,
-                                      color: Colors.white54, size: 14),
+                                  child: Icon(
+                                    Icons.refresh,
+                                    color: Colors.white54,
+                                    size: 14,
+                                  ),
                                 ),
                               ),
                           ],
@@ -622,10 +642,8 @@ class _EmployeePortalState extends State<EmployeePortal> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => LeavePage(
-          email: widget.username,
-          displayName: widget.displayName,
-        ),
+        builder: (context) =>
+            LeavePage(email: widget.username, displayName: widget.displayName),
       ),
     );
   }
@@ -673,9 +691,13 @@ class _EmployeePortalState extends State<EmployeePortal> {
     );
   }
 
-
   Widget _buildActionCardWithCallback(
-      IconData icon, String title, String subtitle, Color color, VoidCallback onTap) {
+    IconData icon,
+    String title,
+    String subtitle,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -734,7 +756,13 @@ class _EmployeePortalState extends State<EmployeePortal> {
   }
 
   Widget _buildActionCardWithBadge(
-      IconData icon, String title, String subtitle, Color color, VoidCallback onTap, int badgeCount) {
+    IconData icon,
+    String title,
+    String subtitle,
+    Color color,
+    VoidCallback onTap,
+    int badgeCount,
+  ) {
     return Stack(
       children: [
         _buildActionCardWithCallback(icon, title, subtitle, color, onTap),
@@ -763,7 +791,11 @@ class _EmployeePortalState extends State<EmployeePortal> {
   }
 
   Widget _buildActivityItem(
-      IconData icon, String title, String subtitle, Color color) {
+    IconData icon,
+    String title,
+    String subtitle,
+    Color color,
+  ) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
@@ -949,8 +981,11 @@ class _AttendanceModalState extends State<_AttendanceModal> {
           // Title
           const Row(
             children: [
-              Icon(Icons.access_time_rounded,
-                  color: Color(0xFF3B6FE8), size: 24),
+              Icon(
+                Icons.access_time_rounded,
+                color: Color(0xFF3B6FE8),
+                size: 24,
+              ),
               SizedBox(width: 10),
               Text(
                 'Attendance',
@@ -978,12 +1013,15 @@ class _AttendanceModalState extends State<_AttendanceModal> {
             ),
             child: Column(
               children: [
-                const Icon(Icons.calendar_today, color: Colors.white70, size: 18),
+                const Icon(
+                  Icons.calendar_today,
+                  color: Colors.white70,
+                  size: 18,
+                ),
                 const SizedBox(height: 6),
                 Text(
                   dateStr,
-                  style: const TextStyle(
-                      color: Colors.white70, fontSize: 14),
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -1013,8 +1051,11 @@ class _AttendanceModalState extends State<_AttendanceModal> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.location_on,
-                        color: Color(0xFF3B6FE8), size: 18),
+                    const Icon(
+                      Icons.location_on,
+                      color: Color(0xFF3B6FE8),
+                      size: 18,
+                    ),
                     const SizedBox(width: 6),
                     const Text(
                       'GPS Location',
@@ -1030,13 +1071,18 @@ class _AttendanceModalState extends State<_AttendanceModal> {
                         width: 16,
                         height: 16,
                         child: CircularProgressIndicator(
-                            strokeWidth: 2, color: Color(0xFF3B6FE8)),
+                          strokeWidth: 2,
+                          color: Color(0xFF3B6FE8),
+                        ),
                       )
                     else
                       GestureDetector(
                         onTap: _fetchLocation,
-                        child: const Icon(Icons.refresh,
-                            color: Color(0xFF8A96B0), size: 18),
+                        child: const Icon(
+                          Icons.refresh,
+                          color: Color(0xFF8A96B0),
+                          size: 18,
+                        ),
                       ),
                   ],
                 ),
@@ -1067,29 +1113,43 @@ class _AttendanceModalState extends State<_AttendanceModal> {
                   if (_timeInStamp != null)
                     Column(
                       children: [
-                        const Text('Time In',
-                            style: TextStyle(
-                                fontSize: 11, color: Color(0xFF8A96B0))),
+                        const Text(
+                          'Time In',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF8A96B0),
+                          ),
+                        ),
                         const SizedBox(height: 2),
-                        Text(_timeInStamp!,
-                            style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF00BFA5))),
+                        Text(
+                          _timeInStamp!,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF00BFA5),
+                          ),
+                        ),
                       ],
                     ),
                   if (_timeOutStamp != null)
                     Column(
                       children: [
-                        const Text('Time Out',
-                            style: TextStyle(
-                                fontSize: 11, color: Color(0xFF8A96B0))),
+                        const Text(
+                          'Time Out',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Color(0xFF8A96B0),
+                          ),
+                        ),
                         const SizedBox(height: 2),
-                        Text(_timeOutStamp!,
-                            style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFFFF7043))),
+                        Text(
+                          _timeOutStamp!,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFFF7043),
+                          ),
+                        ),
                       ],
                     ),
                 ],
@@ -1110,7 +1170,8 @@ class _AttendanceModalState extends State<_AttendanceModal> {
                     disabledBackgroundColor: Colors.grey.shade300,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
@@ -1128,7 +1189,8 @@ class _AttendanceModalState extends State<_AttendanceModal> {
                     disabledBackgroundColor: Colors.grey.shade300,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
@@ -1143,13 +1205,18 @@ class _AttendanceModalState extends State<_AttendanceModal> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label,
-            style: const TextStyle(fontSize: 12, color: Color(0xFF8A96B0))),
-        Text(value,
-            style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1A2035))),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: Color(0xFF8A96B0)),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF1A2035),
+          ),
+        ),
       ],
     );
   }
